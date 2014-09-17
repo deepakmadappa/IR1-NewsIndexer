@@ -17,6 +17,7 @@ public class Document {
 	 * Default constructor
 	 */
 	public Document() {
+		//TBD filling in the initial capacity may make it more efficient
 		map = new HashMap<FieldNames, String[]>();
 	}
 	
@@ -26,6 +27,10 @@ public class Document {
 	 * @param o : The value to be set to
 	 */
 	public void setField(FieldNames fn, String... o) {
+		map.put(fn, o);
+	}
+	
+	public void setArray(FieldNames fn, String[] o) {
 		map.put(fn, o);
 	}
 	
