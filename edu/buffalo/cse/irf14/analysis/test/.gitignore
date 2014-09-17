@@ -1,2 +1,13 @@
 /AnalysisSuite.class
 /TFRuleBaseTest.class
+/AccentRuleTest.class
+/DateRuleTest.class
+/NumberRuleTest.class
+/StemmerRuleTest.class
+/StopWordsRuleTest.class
+/SymbolRuleTest.class
+/TokenStreamTest.class
+/TokenTest.class
+/TokenizerTest.class
+/CapitalizationRuleTest.class
+/SpecialCharRuleTest.class
