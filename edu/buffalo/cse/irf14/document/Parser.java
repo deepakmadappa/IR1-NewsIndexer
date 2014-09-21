@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.sun.org.apache.xalan.internal.utils.FeatureManager.Feature;
+
 /**
  * @author nikhillo
  * Class that parses a given file into a Document
@@ -25,10 +27,17 @@ public class Parser {
 	 */
 	public static Document parse(String filename) throws ParserException {
 		Document retDocument = new Document();
+		if(filename == null) {
+			throw new ParserException("File name is null");
+		}
 		try {
 			
 			getFileIDAndCategory(retDocument, filename.replace(File.separatorChar, '|'));
 			Path path = Paths.get(filename);
+			File file = new File(filename);
+			if(!file.exists()) {
+				throw new ParserException("file does not exist");
+			}
 			List<String> lines = Files.readAllLines(path);
 			getTitleAuthorAndContent(retDocument, lines);
 		}
@@ -42,7 +51,7 @@ public class Parser {
 	}
 	
 	private static void getFileIDAndCategory(Document doc, String filename) throws ParserException {
-		String[] filenameTokens = filename.split("|");
+		String[] filenameTokens = filename.split("\\|");
 		int tokensLength = filenameTokens.length;
 		if(tokensLength < 3) {
 			throw new ParserException("Invalid file name, directory not deep enough");
@@ -59,7 +68,7 @@ public class Parser {
 		boolean bFound = false;
 		for(;nLineNumber < lines.size(); nLineNumber++) {
 			String line = lines.get(nLineNumber);
-			if(line == "")
+			if(line.isEmpty())
 				continue;
 			
 			Matcher matcher = titlePattern.matcher(line);
@@ -74,9 +83,9 @@ public class Parser {
 		}
 		
 		/*code to match for Author, Date and Place */
-		Pattern datePattern = Pattern.compile("([A-Za-z]+.*?)(Jan.*?[0-9]+|Feb.*?[0-9]+|Mar.*?[0-9]+|Apr.*?[0-9]+|May.*?[0-9]+|Jun.*?[0-9]+|Jul.*?[0-9]+|Aug.*?[0-9]+|Sept.*?[0-9]+|Oct.*?[0-9]+|Nov.*?[0-9]+|Dec.*?[0-9]+)",
+		Pattern datePattern = Pattern.compile("([A-Za-z]+.*?), (Jan.*?[0-9]+|Feb.*?[0-9]+|Mar.*?[0-9]+|Apr.*?[0-9]+|May.*?[0-9]+|Jun.*?[0-9]+|Jul.*?[0-9]+|Aug.*?[0-9]+|Sept.*?[0-9]+|Oct.*?[0-9]+|Nov.*?[0-9]+|Dec.*?[0-9]+)",
 				Pattern.CASE_INSENSITIVE);
-		Pattern authorPattern = Pattern.compile("<author>(.+)</author>", Pattern.CASE_INSENSITIVE);
+		Pattern authorPattern = Pattern.compile("<author> *([Bb][Yy])? (.*)</author>", Pattern.CASE_INSENSITIVE);
 		boolean bAuthorFound = false;
 		boolean bDateFound = false;
 		Matcher authorMatcher;
@@ -89,7 +98,11 @@ public class Parser {
 			if(!bAuthorFound) {
 				authorMatcher = authorPattern.matcher(line);
 				if(authorMatcher.find()) {
-					doc.setField(FieldNames.AUTHOR, authorMatcher.group(1));
+					String[] authorPart = authorMatcher.group(2).split(",");
+					doc.setField(FieldNames.AUTHOR, authorPart[0]);
+					if(authorPart.length > 1) {
+						doc.setField(FieldNames.AUTHORORG, authorPart[1].trim());
+					}
 					bAuthorFound = true;
 					continue;
 				}

@@ -3,6 +3,10 @@
  */
 package edu.buffalo.cse.irf14.analysis;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 /**
  * @author nikhillo
  * Class that converts a given string into a {@link TokenStream} instance
@@ -11,8 +15,9 @@ public class Tokenizer {
 	/**
 	 * Default constructor. Assumes tokens are whitespace delimited
 	 */
+	String mDelimiter;
 	public Tokenizer() {
-		//TODO : YOU MUST IMPLEMENT THIS METHOD
+		mDelimiter = " ";
 	}
 	
 	/**
@@ -20,7 +25,7 @@ public class Tokenizer {
 	 * @param delim : The delimiter to be used
 	 */
 	public Tokenizer(String delim) {
-		//TODO : YOU MUST IMPLEMENT THIS METHOD
+		mDelimiter = delim;
 	}
 	
 	/**
@@ -38,7 +43,16 @@ public class Tokenizer {
 	 * tokenization
 	 */
 	public TokenStream consume(String str) throws TokenizerException {
-		//TODO : YOU MUST IMPLEMENT THIS METHOD
-		return null;
+		if(str == null || str.isEmpty()) {
+			throw new TokenizerException();
+		}
+		String[] splitString = str.split(Pattern.quote(mDelimiter));
+		List<Token> lstTokens = new ArrayList<Token>();
+		for (String string : splitString) {
+			Token tok = new Token();
+			tok.setTermText(string);
+			lstTokens.add(tok);
+		}
+		return new TokenStream(lstTokens);
 	}
 }

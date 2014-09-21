@@ -4,6 +4,7 @@
 package edu.buffalo.cse.irf14.analysis;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author nikhillo
@@ -13,6 +14,12 @@ import java.util.Iterator;
  */
 public class TokenStream implements Iterator<Token>{
 	
+	public List<Token> mTokens = null;
+	int mCurrentIndex;
+	public TokenStream(List<Token> tokens) {
+		mTokens = tokens;
+		mCurrentIndex = 0;
+	}
 	/**
 	 * Method that checks if there is any Token left in the stream
 	 * with regards to the current pointer.
@@ -21,8 +28,10 @@ public class TokenStream implements Iterator<Token>{
 	 */
 	@Override
 	public boolean hasNext() {
-		// TODO YOU MUST IMPLEMENT THIS
-		return false;
+		if(mTokens == null || mCurrentIndex >= mTokens.size()) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -34,8 +43,9 @@ public class TokenStream implements Iterator<Token>{
 	 */
 	@Override
 	public Token next() {
-		// TODO YOU MUST IMPLEMENT THIS
-		return null;
+		if(mTokens == null || mCurrentIndex >= mTokens.size())
+			return null;
+		return mTokens.get(mCurrentIndex++);
 	}
 	
 	/**
@@ -46,8 +56,10 @@ public class TokenStream implements Iterator<Token>{
 	 */
 	@Override
 	public void remove() {
-		// TODO YOU MUST IMPLEMENT THIS
-		
+		if(mCurrentIndex == 0 || mTokens == null) {
+			return;
+		}
+		mTokens.remove(mCurrentIndex - 1); 
 	}
 	
 	/**
@@ -56,7 +68,7 @@ public class TokenStream implements Iterator<Token>{
 	 * reset() must always return true.
 	 */
 	public void reset() {
-		//TODO : YOU MUST IMPLEMENT THIS
+		mCurrentIndex = 0;
 	}
 	
 	/**
@@ -69,7 +81,7 @@ public class TokenStream implements Iterator<Token>{
 	 * @param stream : The stream to be appended
 	 */
 	public void append(TokenStream stream) {
-		//TODO : YOU MUST IMPLEMENT THIS
+		mTokens.addAll(stream.mTokens);
 	}
 	
 	/**
@@ -81,8 +93,10 @@ public class TokenStream implements Iterator<Token>{
 	 * has been reached or the current Token was removed
 	 */
 	public Token getCurrent() {
-		//TODO: YOU MUST IMPLEMENT THIS
-		return null;
+		if(mCurrentIndex == mTokens.size()) {
+			return null;
+		}
+		return mTokens.get(mCurrentIndex);
 	}
 	
 }

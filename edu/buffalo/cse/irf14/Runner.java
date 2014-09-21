@@ -4,6 +4,7 @@
 package edu.buffalo.cse.irf14;
 
 import java.io.File;
+import junit.runner.Version;
 
 import edu.buffalo.cse.irf14.document.Document;
 import edu.buffalo.cse.irf14.document.Parser;
@@ -32,6 +33,9 @@ public class Runner {
 		String indexDir = args[1];
 		//more? idk!
 		
+		System.out.println("JUnit version is: " + Version.id());
+		return;
+		/*
 		File ipDirectory = new File(ipDir);
 		String[] catDirectories = ipDirectory.list();
 		
@@ -57,20 +61,17 @@ public class Runner {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} 
-					catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} 
 					
 				}
 				
 			}
 			
 			writer.close();
+			
 		} catch (IndexerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 
 }
