@@ -21,9 +21,13 @@ public class TokenFilterFactory {
 	 * during instantiation
 	 * @return An instance of the factory
 	 */
+	private static TokenFilterFactory mInstance = null;
 	public static TokenFilterFactory getInstance() {
 		//TODO : YOU MUST IMPLEMENT THIS METHOD
-		return null;
+		if(mInstance == null) {
+			mInstance = new TokenFilterFactory();
+		}
+		return mInstance;
 	}
 	
 	/**
@@ -35,7 +39,14 @@ public class TokenFilterFactory {
 	 * @return The built {@link TokenFilter} instance
 	 */
 	public TokenFilter getFilterByType(TokenFilterType type, TokenStream stream) {
-		//TODO : YOU MUST IMPLEMENT THIS METHOD
-		return null;
+		switch (type) {
+		case CAPITALIZATION:
+			return new CapitalizationRuleFilter(stream);
+			
+
+		default:
+			return null;
+		}
+		
 	}
 }

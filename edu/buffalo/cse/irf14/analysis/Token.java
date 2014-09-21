@@ -66,7 +66,9 @@ public class Token {
 	 * @param tokens The token array to be merged
 	 */
 	protected void merge(Token...tokens) {
-		//TODO : YOU MUST IMPLEMENT THIS METHOD
+		for (Token token : tokens) {
+			termText = termText.concat(" ").concat(token.toString());
+		}
 	}
 	
 	/**
@@ -83,7 +85,6 @@ public class Token {
 	 */
 	@Override
 	public String toString() {
-		//TODO: YOU MUST IMPLEMENT THIS METHOD
-		return null;
+		return termText;
 	}
 }

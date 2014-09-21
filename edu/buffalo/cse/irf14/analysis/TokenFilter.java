@@ -3,6 +3,9 @@
  */
 package edu.buffalo.cse.irf14.analysis;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The abstract class that you must extend when implementing your 
  * TokenFilter rule implementations.
@@ -12,12 +15,16 @@ package edu.buffalo.cse.irf14.analysis;
  *
  */
 public abstract class TokenFilter implements Analyzer {
+	protected TokenStream mInputStream;
+	protected List<Token> mOutputList;
+	
 	/**
 	 * Default constructor, creates an instance over the given
 	 * TokenStream
 	 * @param stream : The given TokenStream instance
 	 */
 	public TokenFilter(TokenStream stream) {
-		//TODO : YOU MUST IMPLEMENT THIS METHOD
+		mInputStream = stream;
+		mOutputList = new ArrayList<Token>();
 	}
 }
