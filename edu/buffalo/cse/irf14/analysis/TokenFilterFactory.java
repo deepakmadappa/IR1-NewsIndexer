@@ -42,7 +42,8 @@ public class TokenFilterFactory {
 		switch (type) {
 		case CAPITALIZATION:
 			return new CapitalizationRuleFilter(stream);
-			
+		case DATE:
+			return new DateRuleFilter(stream);
 
 		default:
 			return null;

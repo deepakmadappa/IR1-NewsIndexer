@@ -15,10 +15,12 @@ import java.util.List;
 public class TokenStream implements Iterator<Token>{
 	
 	public List<Token> mTokens = null;
+	int mNextIndex;
 	int mCurrentIndex;
 	public TokenStream(List<Token> tokens) {
 		mTokens = tokens;
-		mCurrentIndex = 0;
+		mNextIndex = 0;
+		mCurrentIndex = -1;
 	}
 	/**
 	 * Method that checks if there is any Token left in the stream
@@ -28,7 +30,7 @@ public class TokenStream implements Iterator<Token>{
 	 */
 	@Override
 	public boolean hasNext() {
-		if(mTokens == null || mCurrentIndex >= mTokens.size()) {
+		if(mTokens == null || mNextIndex >= mTokens.size()) {
 			return false;
 		}
 		return true;
@@ -43,9 +45,16 @@ public class TokenStream implements Iterator<Token>{
 	 */
 	@Override
 	public Token next() {
-		if(mTokens == null || mCurrentIndex >= mTokens.size())
+		if(mTokens == null || mNextIndex >= mTokens.size()) {
+			mNextIndex++;
+			mCurrentIndex = mNextIndex - 1;
+			
 			return null;
-		return mTokens.get(mCurrentIndex++);
+		}
+		mNextIndex++;
+		mCurrentIndex = mNextIndex - 1;
+		
+		return mTokens.get(mCurrentIndex);
 	}
 	
 	/**
@@ -56,10 +65,12 @@ public class TokenStream implements Iterator<Token>{
 	 */
 	@Override
 	public void remove() {
-		if(mCurrentIndex == 0 || mTokens == null) {
+		if(mNextIndex == 0 || mTokens == null || mCurrentIndex >= mTokens.size()) {
 			return;
 		}
-		mTokens.remove(mCurrentIndex - 1); 
+		mTokens.remove(mCurrentIndex); 
+		mNextIndex --;
+		mCurrentIndex = -1;
 	}
 	
 	/**
@@ -68,7 +79,8 @@ public class TokenStream implements Iterator<Token>{
 	 * reset() must always return true.
 	 */
 	public void reset() {
-		mCurrentIndex = 0;
+		mNextIndex = 0;
+		mCurrentIndex = -1;
 	}
 	
 	/**
@@ -81,6 +93,9 @@ public class TokenStream implements Iterator<Token>{
 	 * @param stream : The stream to be appended
 	 */
 	public void append(TokenStream stream) {
+		if(stream == null) {
+			return;
+		}
 		mTokens.addAll(stream.mTokens);
 	}
 	
@@ -93,7 +108,7 @@ public class TokenStream implements Iterator<Token>{
 	 * has been reached or the current Token was removed
 	 */
 	public Token getCurrent() {
-		if(mCurrentIndex == mTokens.size()) {
+		if(mCurrentIndex < 0 || mCurrentIndex >= mTokens.size()) {
 			return null;
 		}
 		return mTokens.get(mCurrentIndex);

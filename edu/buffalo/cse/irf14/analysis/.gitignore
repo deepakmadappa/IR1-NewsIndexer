@@ -8,3 +8,4 @@
 /Tokenizer.class
 /TokenizerException.class
 /CapitalizationRuleFilter.class
+/DateRuleFilter.class
