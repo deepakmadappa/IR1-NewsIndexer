@@ -40,12 +40,18 @@ public class CapitalizationRuleFilter extends TokenFilter {
 					mOutputList.add(nextWordInSentence);
 					continue;
 				}
+				
+				//handling "weird case" like iOS
+				if(isWeirdCase(nextWordInSentence.toString())) {
+					mOutputList.add(nextWordInSentence);
+					continue;
+				}
 				boolean bRetainCamel = false;
 				
 				if(isCamelCase(nextWordInSentence.toString())) {
 					bRetainCamel = true;
 					while(index < sentence.size()) {
-						if( isCamelCase(sentence.get(index).toString()) ) {
+						if( isCamelCase(sentence.get(index).toString()) || isAllCaps(sentence.get(index).toString()))  {
 							nextWordInSentence.merge(sentence.get(index));
 							index++;
 						}
@@ -97,10 +103,17 @@ public class CapitalizationRuleFilter extends TokenFilter {
 	
 	private boolean isCamelCase(String word) {
 		Pattern camelPattern1 = Pattern.compile("^[A-Z][a-z\\p{Punct}]+");
-		Pattern camelPattern2 = Pattern.compile("^[a-z][A-Z\\p{Punct}]+");
 		Matcher matcher1 = camelPattern1.matcher(word);
+		if(matcher1.find()) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean isWeirdCase(String word) {
+		Pattern camelPattern2 = Pattern.compile("^[a-z][A-Z\\p{Punct}]+");
 		Matcher matcher2 = camelPattern2.matcher(word);
-		if(matcher1.find() || matcher2.find()) {
+		if(matcher2.find()) {
 			return true;
 		}
 		return false;
