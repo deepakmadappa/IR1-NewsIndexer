@@ -46,6 +46,8 @@ public class TokenFilterFactory {
 			return new DateRuleFilter(stream);
 		case NUMERIC:
 			return new NumberRuleFilter(stream);
+		case STEMMER:
+			return new StemmerRuleFilter(stream);
 
 		default:
 			return null;

@@ -10,3 +10,5 @@
 /CapitalizationRuleFilter.class
 /DateRuleFilter.class
 /NumberRuleFilter.class
+/StemmerRuleFilter.class
+/Stemmer.class
