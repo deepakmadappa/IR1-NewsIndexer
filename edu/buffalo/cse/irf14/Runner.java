@@ -32,10 +32,6 @@ public class Runner {
 		String ipDir = args[0];
 		String indexDir = args[1];
 		//more? idk!
-		
-		System.out.println("JUnit version is: " + Version.id());
-		return;
-		/*
 		File ipDirectory = new File(ipDir);
 		String[] catDirectories = ipDirectory.list();
 		
@@ -71,7 +67,7 @@ public class Runner {
 		} catch (IndexerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}*/
+		}
 	}
 
 }
