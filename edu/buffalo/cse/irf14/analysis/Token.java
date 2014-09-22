@@ -66,6 +66,8 @@ public class Token {
 	 * @param tokens The token array to be merged
 	 */
 	protected void merge(Token...tokens) {
+		if(tokens == null)
+			return;
 		for (Token token : tokens) {
 			termText = termText.concat(" ").concat(token.toString());
 		}
