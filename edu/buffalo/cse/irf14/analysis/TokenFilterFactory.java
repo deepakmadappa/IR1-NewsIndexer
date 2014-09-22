@@ -44,6 +44,8 @@ public class TokenFilterFactory {
 			return new CapitalizationRuleFilter(stream);
 		case DATE:
 			return new DateRuleFilter(stream);
+		case NUMERIC:
+			return new NumberRuleFilter(stream);
 
 		default:
 			return null;

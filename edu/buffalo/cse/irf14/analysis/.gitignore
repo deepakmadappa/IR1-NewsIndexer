@@ -9,3 +9,4 @@
 /TokenizerException.class
 /CapitalizationRuleFilter.class
 /DateRuleFilter.class
+/NumberRuleFilter.class
