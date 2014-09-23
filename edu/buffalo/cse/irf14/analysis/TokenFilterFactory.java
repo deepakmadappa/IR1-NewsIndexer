@@ -48,7 +48,10 @@ public class TokenFilterFactory {
 			return new NumberRuleFilter(stream);
 		case STEMMER:
 			return new StemmerRuleFilter(stream);
-
+		case ACCENT:
+			return new AccentRuleFilter(stream);
+		case STOPWORD:
+			return new StopWordsRuleFilter(stream);
 		default:
 			return null;
 		}
