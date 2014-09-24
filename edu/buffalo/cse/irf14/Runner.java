@@ -4,8 +4,9 @@
 package edu.buffalo.cse.irf14;
 
 import java.io.File;
-import junit.runner.Version;
 
+import junit.runner.Version;
+import edu.buffalo.cse.irf14.analysis.AccentRuleFilter;
 import edu.buffalo.cse.irf14.document.Document;
 import edu.buffalo.cse.irf14.document.Parser;
 import edu.buffalo.cse.irf14.document.ParserException;
@@ -34,6 +35,8 @@ public class Runner {
 		//more? idk!
 		
 		System.out.println("JUnit version is: " + Version.id());
+		
+		
 		return;
 		/*
 		File ipDirectory = new File(ipDir);

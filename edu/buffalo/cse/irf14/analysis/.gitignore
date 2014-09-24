@@ -12,3 +12,6 @@
 /NumberRuleFilter.class
 /StemmerRuleFilter.class
 /Stemmer.class
+/StopWordsRuleFilter.class
+/SpecialCharacRuleFilter.class
+/SymbolRuleFilter.class

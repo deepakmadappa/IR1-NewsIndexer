@@ -52,6 +52,9 @@ public class TokenFilterFactory {
 			return new AccentRuleFilter(stream);
 		case STOPWORD:
 			return new StopWordsRuleFilter(stream);
+		case SPECIALCHARS:
+			return new SpecialCharacRuleFilter(stream);
+			
 		default:
 			return null;
 		}
