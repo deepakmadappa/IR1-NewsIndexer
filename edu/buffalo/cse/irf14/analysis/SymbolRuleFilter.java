@@ -18,6 +18,24 @@ public class SymbolRuleFilter extends TokenFilter {
 
 	@Override
 	public TokenStream getStream(){
+		
+		Token symboltok = null;
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		return new TokenStream(mOutputList);
+		
+	}
 
 
 
