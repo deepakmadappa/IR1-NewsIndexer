@@ -22,7 +22,7 @@ public class NumberRuleFilter extends TokenFilter {
 		
 		Token tok = null;
 		Pattern numberPattern = Pattern.compile("[0-9.,]*[0-9]");
-		Pattern datePattern = Pattern.compile("[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]");
+		Pattern datePattern = Pattern.compile("[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9](-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9])?");
 		while((tok = mInputStream.next())!= null) {
 			String strToken = tok.toString();
 			Matcher numMatcher = numberPattern.matcher(strToken);
