@@ -54,6 +54,9 @@ public class TokenFilterFactory {
 			return new StopWordsRuleFilter(stream);
 		case SPECIALCHARS:
 			return new SpecialCharacRuleFilter(stream);
+		case SYMBOL:
+			return new SymbolRuleFilter(stream);
+			
 			
 		default:
 			return null;
