@@ -26,7 +26,7 @@ public class SymbolRuleFilter extends TokenFilter {
 		Pattern apostroPattern1= Pattern.compile("(^[A-Za-z0-9]+'s)$");
 		Pattern apostroPattern2= Pattern.compile("(^[A-Za-z0-9]+')");
 		Pattern hyphenPattern = Pattern.compile("((^[A-Za-z]+)(-)([A-Za-z]+)$)");
-		Pattern hyphenPattern2 = Pattern.compile("(^A-Za-z)");
+		Pattern hyphenPattern2 = Pattern.compile("([^A-Za-z])");
 		HashMap<String,String> contraMap = new HashMap<String,String>();
 		contraMap.put("aren't","are not");
 		contraMap.put("can't","cannot");
