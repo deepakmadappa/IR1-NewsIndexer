@@ -91,12 +91,6 @@ public class AccentRuleFilter extends TokenFilter {
 	}
 	@Override
 	public boolean increment() throws TokenizerException {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public TokenStream getStream() {
 		Token accenttok = null;
 		//Loop to iterate over the tokens in a tokenstream
 		while((accenttok = mInputStream.next())!= null) {
@@ -123,7 +117,15 @@ public class AccentRuleFilter extends TokenFilter {
 			else
 				mOutputList.add(accenttok);
 		}// end while
+		mInputStream.mTokens.clear();
+		mInputStream.reset();
+		mInputStream.mTokens.addAll(mOutputList);
+		return false;
+	}
 
-		return new TokenStream(mOutputList);
+	@Override
+	public TokenStream getStream() {
+
+		return mInputStream; 
 	}
 }

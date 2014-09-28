@@ -11,12 +11,6 @@ public class CapitalizationRuleFilter extends TokenFilter {
 	}
 	@Override
 	public boolean increment() throws TokenizerException {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	@Override
-	public TokenStream getStream() {
-		
 		while(true) {	//loop through all the sentences
 			int index = 0;
 			List<Token> sentence = new ArrayList<Token>();
@@ -67,7 +61,14 @@ public class CapitalizationRuleFilter extends TokenFilter {
 				mOutputList.add(nextWordInSentence);
 			}
 		}
-		return new TokenStream(mOutputList);
+		mInputStream.mTokens.clear();
+		mInputStream.reset();
+		mInputStream.mTokens.addAll(mOutputList);
+		return false;
+	}
+	@Override
+	public TokenStream getStream() {
+		return mInputStream; 
 	}
 
 	private  boolean getNextSentence(List<Token> sentence) {

@@ -12,12 +12,6 @@ public class SpecialCharacRuleFilter extends TokenFilter {
 
 	@Override
 	public boolean increment() throws TokenizerException {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public TokenStream getStream(){
 		Token splchartok = null;
 		Pattern splcharPattern = Pattern.compile("[^a-zA-Z0-9.\\-' ]");
 		Pattern hyphenPattern = Pattern.compile("((^[A-Za-z]+)(-)([A-Za-z]+)$)");
@@ -46,8 +40,16 @@ public class SpecialCharacRuleFilter extends TokenFilter {
 				mOutputList.add(splchartok);
 			}
 		}
-			
-		return new TokenStream(mOutputList);
+		mInputStream.mTokens.clear();
+		mInputStream.reset();
+		mInputStream.mTokens.addAll(mOutputList);
+
+		return false;
+	}
+
+	@Override
+	public TokenStream getStream(){
+		return mInputStream; 
 	
 	}
 }

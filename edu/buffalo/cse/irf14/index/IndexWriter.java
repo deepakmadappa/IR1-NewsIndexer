@@ -4,8 +4,11 @@
 package edu.buffalo.cse.irf14.index;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -27,10 +30,14 @@ import edu.buffalo.cse.irf14.document.ParserException;
  */
 public class IndexWriter {
 	String mIndexDir;
-	Map<String, IndexEntry> mTermIndex;
-	Map<String, IndexEntry> mAuthorIndex;
-	Map<String, IndexEntry> mCategoryIndex;
-	Map<String, IndexEntry> mPlaceIndex;
+	HashMap<String, IndexEntry> mTermIndex;
+	HashMap<String, IndexEntry> mAuthorIndex;
+	HashMap<String, IndexEntry> mCategoryIndex;
+	HashMap<String, IndexEntry> mPlaceIndex;
+	HashSet<String> mTermFileIDSet;
+	HashSet<String> mAuthorFileIDSet;
+	HashSet<String> mCategoryFileIDSet;
+	HashSet<String> mPlaceFileIDSet;
 	private Tokenizer mTokenizer;
 	/**
 	 * Default constructor
@@ -44,6 +51,11 @@ public class IndexWriter {
 		mCategoryIndex = new HashMap<String, IndexEntry>();
 		mPlaceIndex = new HashMap<String, IndexEntry>();
 		mTokenizer = new Tokenizer();
+		mTermFileIDSet = new HashSet<String>();
+		mAuthorFileIDSet = new HashSet<String>();
+		mCategoryFileIDSet = new HashSet<String>();
+		mPlaceFileIDSet = new HashSet<String>();
+		System.setProperty("INDEX.DIR", indexDir);
 	}
 
 	/**
@@ -56,6 +68,7 @@ public class IndexWriter {
 	 */
 	public void addDocument(Document d) throws IndexerException {
 		TokenStream stream = null;
+		TokenStream indexableStream = null;
 		try {
 			String[] author = d.getField(FieldNames.AUTHOR);
 			if(author != null) {
@@ -63,24 +76,28 @@ public class IndexWriter {
 
 				Analyzer AuthorAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.AUTHOR, stream);
 				while(AuthorAnalyzer.increment()) {}
-				TokenStream indexableStream = AuthorAnalyzer.getStream();
+				indexableStream = AuthorAnalyzer.getStream();
 				buildIndex(indexableStream, FieldNames.AUTHOR, d);
 			}
 
 			String[] content = d.getField(FieldNames.CONTENT);
-			stream = mTokenizer.consume(content[0]);
-			Analyzer contentAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CONTENT, stream);
-			while(contentAnalyzer.increment()) {}
-			TokenStream indexableStream = contentAnalyzer.getStream();
-			buildIndex(indexableStream, FieldNames.CONTENT, d);
+			if(content != null) {
+				stream = mTokenizer.consume(content[0]);
+				Analyzer contentAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CONTENT, stream);
+				while(contentAnalyzer.increment()) {}
+				indexableStream = contentAnalyzer.getStream();
+				buildIndex(indexableStream, FieldNames.CONTENT, d);
+			}
 
 			String[] title = d.getField(FieldNames.TITLE);
-			stream = mTokenizer.consume(title[0]);
-			Analyzer titleAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CONTENT, stream);
-			while(titleAnalyzer.increment()) {}
-			indexableStream = titleAnalyzer.getStream();
-			buildIndex(indexableStream, FieldNames.CONTENT, d);
-			
+			if(title!=null) {
+				stream = mTokenizer.consume(title[0]);
+				Analyzer titleAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CONTENT, stream);
+				while(titleAnalyzer.increment()) {}
+				indexableStream = titleAnalyzer.getStream();
+				buildIndex(indexableStream, FieldNames.CONTENT, d);
+			}
+
 			String[] authorOrg = d.getField(FieldNames.AUTHORORG);
 			if(authorOrg != null) {
 				stream = mTokenizer.consume(authorOrg[0]);
@@ -89,32 +106,38 @@ public class IndexWriter {
 				indexableStream = authorOrgAnalyzer.getStream();
 				buildIndex(indexableStream, FieldNames.CONTENT, d);
 			}
-			
+
 			String[] place = d.getField(FieldNames.PLACE);
-			stream = mTokenizer.consume(place[0]);
-			Analyzer placeAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.PLACE, stream);
-			while(placeAnalyzer.increment()) {}
-			indexableStream = placeAnalyzer.getStream();
-			buildIndex(indexableStream, FieldNames.PLACE, d);
-			
+			if(place != null) {
+				stream = mTokenizer.consume(place[0]);
+				Analyzer placeAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.PLACE, stream);
+				while(placeAnalyzer.increment()) {}
+				indexableStream = placeAnalyzer.getStream();
+				buildIndex(indexableStream, FieldNames.PLACE, d);
+			}
+
 			/*String[] fileID = d.getField(FieldNames.FILEID);
 			stream = mTokenizer.consume(fileID[0]);
 			buildIndex(stream, FieldNames.FILEID, d);*/
-			
+
 			String[] newsDate = d.getField(FieldNames.NEWSDATE);
-			stream = mTokenizer.consume(newsDate[0]);
-			Analyzer newsDateAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.NEWSDATE, stream);
-			while(newsDateAnalyzer.increment()) {}
-			indexableStream = newsDateAnalyzer.getStream();
-			buildIndex(indexableStream, FieldNames.NEWSDATE, d);
-			
+			if(newsDate != null) {
+				stream = mTokenizer.consume(newsDate[0]);
+				Analyzer newsDateAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.NEWSDATE, stream);
+				while(newsDateAnalyzer.increment()) {}
+				indexableStream = newsDateAnalyzer.getStream();
+				buildIndex(indexableStream, FieldNames.NEWSDATE, d);
+			}
+
 			String[] category = d.getField(FieldNames.CATEGORY);
-			stream = mTokenizer.consume(category[0]);
-			Analyzer categoryAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CATEGORY, stream);
-			while(categoryAnalyzer.increment()) {}
-			indexableStream = categoryAnalyzer.getStream();
-			buildIndex(indexableStream, FieldNames.CATEGORY, d);
-			
+			if(category != null) {
+				stream = mTokenizer.consume(category[0]);
+				Analyzer categoryAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CATEGORY, stream);
+				while(categoryAnalyzer.increment()) {}
+				indexableStream = categoryAnalyzer.getStream();
+				buildIndex(indexableStream, FieldNames.CATEGORY, d);
+			}
+
 		}
 		catch (TokenizerException e) {
 
@@ -123,21 +146,26 @@ public class IndexWriter {
 
 	private void buildIndex (TokenStream stream, FieldNames fieldname, Document doc) {
 		Map<String, IndexEntry> indexMap = null;
+		HashSet<String> fileIDSet = null;
 		switch(fieldname) {
 		case AUTHOR:
 			indexMap = mAuthorIndex;
+			fileIDSet = mAuthorFileIDSet;
 			break;
 		case CATEGORY:
 			indexMap = mCategoryIndex;
+			fileIDSet = mCategoryFileIDSet;
 			break;
 		case CONTENT:	//using as a placeholder for term
 		case NEWSDATE:
 		case AUTHORORG:
 		case TITLE:
 			indexMap = mTermIndex;
+			fileIDSet = mTermFileIDSet;
 			break;
 		case PLACE:
 			indexMap = mPlaceIndex;
+			fileIDSet = mPlaceFileIDSet;
 			break;
 		default:
 			break;
@@ -153,6 +181,7 @@ public class IndexWriter {
 			LinkedList<DocumentEntry> documentList = indexEntry.mDocumentList;
 			if(documentList.isEmpty() || !documentList.getFirst().mFileID.equalsIgnoreCase(fileID)) {
 				indexEntry.mDocumentList.addFirst(new DocumentEntry(fileID));
+				fileIDSet.add(fileID);
 			}
 			indexEntry.mTotalFrequency++;
 			documentList.getFirst().mFrequencyInFile++;
@@ -166,7 +195,7 @@ public class IndexWriter {
 	 * @throws IndexerException : In case any error occurs
 	 */
 	public void close() throws IndexerException {
-		Iterator it = mTermIndex.entrySet().iterator();
+		/*Iterator it = mTermIndex.entrySet().iterator();
 		try {
 			PrintWriter writer = new PrintWriter("d:\\testout", "UTF-8");
 			while(it.hasNext()) {
@@ -180,6 +209,50 @@ public class IndexWriter {
 		}
 		catch (Exception e) {
 
+		}*/
+		try {
+			FileOutputStream termStream = new FileOutputStream(mIndexDir + File.separator + "term.index");
+			ObjectOutputStream oos = new ObjectOutputStream(termStream);
+			oos.writeObject(mTermIndex);
+			oos.close();
+
+			FileOutputStream authorStream = new FileOutputStream(mIndexDir + File.separator + "author.index");
+			oos = new ObjectOutputStream(authorStream);
+			oos.writeObject(mAuthorIndex);
+			oos.close();
+
+			FileOutputStream catergoryStream = new FileOutputStream(mIndexDir + File.separator + "category.index");
+			oos = new ObjectOutputStream(catergoryStream);
+			oos.writeObject(mCategoryIndex);
+			oos.close();
+
+			FileOutputStream placeStream = new FileOutputStream(mIndexDir + File.separator + "place.index");
+			oos = new ObjectOutputStream(placeStream);
+			oos.writeObject(mPlaceIndex);
+			oos.close();
+			
+			FileOutputStream termFileIDStream = new FileOutputStream(mIndexDir + File.separator + "term.ids");
+			oos = new ObjectOutputStream(termFileIDStream);
+			oos.writeObject(mTermFileIDSet);
+			oos.close();
+
+			FileOutputStream authorFileIDStream = new FileOutputStream(mIndexDir + File.separator + "author.ids");
+			oos = new ObjectOutputStream(authorFileIDStream);
+			oos.writeObject(mAuthorFileIDSet);
+			oos.close();
+
+			FileOutputStream catergoryFileIDStream = new FileOutputStream(mIndexDir + File.separator + "category.ids");
+			oos = new ObjectOutputStream(catergoryFileIDStream);
+			oos.writeObject(mCategoryFileIDSet);
+			oos.close();
+
+			FileOutputStream placeFileIDStream = new FileOutputStream(mIndexDir + File.separator + "place.ids");
+			oos = new ObjectOutputStream(placeFileIDStream);
+			oos.writeObject(mPlaceFileIDSet);
+			oos.close();
+		}catch (Exception e) {
+			System.out.println("exception occured"+e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }

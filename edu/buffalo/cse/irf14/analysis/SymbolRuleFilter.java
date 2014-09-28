@@ -114,12 +114,6 @@ public class SymbolRuleFilter extends TokenFilter {
 
 	@Override
 	public boolean increment() throws TokenizerException {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public TokenStream getStream(){
 
 		Token symboltok = null;
 		/*Pattern symbolPattern1 = Pattern.compile("((^[^A-Za-z0-9])|([^A-Za-z0-9]$))");
@@ -160,6 +154,15 @@ public class SymbolRuleFilter extends TokenFilter {
 			mOutputList.add(symboltok);
 
 		}
-		return new TokenStream(mOutputList);
+		mInputStream.mTokens.clear();
+		mInputStream.reset();
+		mInputStream.mTokens.addAll(mOutputList);
+
+		return false;
+	}
+
+	@Override
+	public TokenStream getStream(){
+		return mInputStream; 
 	}
 }

@@ -16,31 +16,31 @@ public class AnalyzerChain implements Analyzer {
 		
 		switch(mFieldNames) {
 		case AUTHOR:
-			oStream = analyzeForAuthor();
+			mStream = analyzeForAuthor();
 			break;
 		case AUTHORORG:
-			oStream = analyzeForAuthorOrg();
+			mStream = analyzeForAuthorOrg();
 			break;
 		case CATEGORY:
-			oStream = analyzeForCategory();
+			mStream = analyzeForCategory();
 			break;
 		case CONTENT:
-			oStream = analyzeForContent();
+			mStream = analyzeForContent();
 			break;
 		case FILEID:
-			oStream = analyzeForFileID();
+			mStream = analyzeForFileID();
 			break;
 		case PLACE:
-			oStream = analyzeForPlace();
+			mStream = analyzeForPlace();
 			break;
 		case TITLE:
-			oStream = analyzeForTitle();
+			mStream = analyzeForTitle();
 			break;
 		case NEWSDATE:
-			oStream = analyzeForNewsDate();
+			mStream = analyzeForNewsDate();
 			break;
 		default:
-			oStream = null;
+			mStream = null;
 		}
 		
 	
@@ -243,7 +243,7 @@ public class AnalyzerChain implements Analyzer {
 	@Override
 	public TokenStream getStream() {
 		
-		return oStream;
+		return mStream;
 		
 	}
 

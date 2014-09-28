@@ -12,12 +12,6 @@ public class DateRuleFilter extends TokenFilter {
 
 	@Override
 	public boolean increment() throws TokenizerException {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public TokenStream getStream() {
 		String DDMMMYYYY = "(?i)(.?)([0-9][0-9]?)(st|nd|rd|th)? *(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|sep(tember)?|oct(ober)?|nov(ember)?|dec(ember)?)([ ,]*([0-9][0-9]?[0-9]?[0-9]?))?(.?)"; //1 3 16
 		String MMMDDYYYY = "(?i)(.?)(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|sep(tember)?|oct(ober)?|nov(ember)?|dec(ember)?) *([0-9][0-9]?)(, ([0-9][0-9]?[0-9]?[0-9]?))?(.?)";	//1 13 15
 		String ADBC = "(?i)(.?)([0-9][0-9]?[0-9]?[0-9]?) ?(AD|BC)(.?)"; // 1 2
@@ -27,7 +21,7 @@ public class DateRuleFilter extends TokenFilter {
 		
 		String input = putTokensTogether();
 		if(input.isEmpty())
-			return new TokenStream(mOutputList);
+			return false;
 		
 		Matcher matcher = Pattern.compile(DDMMMYYYY).matcher(input);
 		while(matcher.find()) { 
@@ -67,8 +61,15 @@ public class DateRuleFilter extends TokenFilter {
 		catch (Exception e) {
 			
 		}
-		
-		return tkstr;
+		mInputStream.mTokens.clear();
+		mInputStream.reset();
+		mInputStream.mTokens.addAll(tkstr.mTokens);
+		return false;
+	}
+
+	@Override
+	public TokenStream getStream() {
+		return mInputStream; 
 	}
 	
 	//put humpty dumpty back together again 

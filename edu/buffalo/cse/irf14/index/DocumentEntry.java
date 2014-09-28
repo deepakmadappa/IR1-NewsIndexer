@@ -1,6 +1,8 @@
 package edu.buffalo.cse.irf14.index;
 
-public class DocumentEntry {
+import java.io.Serializable;
+
+public class DocumentEntry implements Serializable{
 	public String mFileID;
 	public int mFrequencyInFile;
 	public DocumentEntry(String fileID) {

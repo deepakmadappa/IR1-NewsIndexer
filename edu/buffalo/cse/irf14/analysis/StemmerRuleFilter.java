@@ -12,12 +12,6 @@ public class StemmerRuleFilter extends TokenFilter{
 
 	@Override
 	public boolean increment() throws TokenizerException {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public TokenStream getStream() {
 		
 		Token tok = null;
 		Stemmer stemmer = new Stemmer();
@@ -33,7 +27,16 @@ public class StemmerRuleFilter extends TokenFilter{
 			tok.setTermText(stemmer.toString());
 			mOutputList.add(tok);
 		}
-		return new TokenStream(mOutputList);
+		mInputStream.mTokens.clear();
+		mInputStream.reset();
+		mInputStream.mTokens.addAll(mOutputList);
+		return false;
+	}
+
+	@Override
+	public TokenStream getStream() {
+
+		return mInputStream; 
 	}
 
 }
