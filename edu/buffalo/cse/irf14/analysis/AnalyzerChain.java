@@ -6,41 +6,49 @@ public class AnalyzerChain implements Analyzer {
 
 	FieldNames mFieldNames;
 	TokenStream mStream;
+	TokenStream oStream;
 	public AnalyzerChain(FieldNames fieldname, TokenStream stream) {
 		mFieldNames = fieldname;
 		mStream = stream;
 	}
 	@Override
 	public boolean increment() throws TokenizerException {
+		
+		switch(mFieldNames) {
+		case AUTHOR:
+			oStream = analyzeForAuthor();
+			break;
+		case AUTHORORG:
+			oStream = analyzeForAuthorOrg();
+			break;
+		case CATEGORY:
+			oStream = analyzeForCategory();
+			break;
+		case CONTENT:
+			oStream = analyzeForContent();
+			break;
+		case FILEID:
+			oStream = analyzeForFileID();
+			break;
+		case PLACE:
+			oStream = analyzeForPlace();
+			break;
+		case TITLE:
+			oStream = analyzeForTitle();
+			break;
+		case NEWSDATE:
+			oStream = analyzeForNewsDate();
+			break;
+		default:
+			oStream = null;
+		}
+		
+	
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	@Override
-	public TokenStream getStream() {
-		switch(mFieldNames) {
-		case AUTHOR:
-			break;
-		case AUTHORORG:
-			break;
-		case CATEGORY:
-			break;
-		case CONTENT:
-			break;
-		case FILEID:
-			break;
-		case PLACE:
-			break;
-		case TITLE:
-			break;
-		case NEWSDATE:
-			break;
-		default:
-			break;
-		}
-		return null;
-	}
-
+	
 	private TokenStream analyzeForAuthor() throws TokenizerException{
 		TokenFilter accentFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.ACCENT, mStream);
 		while(accentFilter.increment()) {
@@ -216,4 +224,12 @@ public class AnalyzerChain implements Analyzer {
 		return spclFilter.getStream();
 
 	}
+	
+	@Override
+	public TokenStream getStream() {
+		
+		return oStream;
+		
+	}
+
 }
