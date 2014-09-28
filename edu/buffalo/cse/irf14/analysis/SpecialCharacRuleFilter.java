@@ -31,8 +31,10 @@ public class SpecialCharacRuleFilter extends TokenFilter {
 			
 				Matcher hyphenMatcher2 = hyphenPattern2.matcher(out);	
 				String out1 = hyphenMatcher2.replaceAll("");
+				if(!out1.isEmpty()) {
 				splchartok.setTermText(out1);
 				mOutputList.add(splchartok);
+				}
 			}
 			else
 			{

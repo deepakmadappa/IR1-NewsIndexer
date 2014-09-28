@@ -150,8 +150,10 @@ public class SymbolRuleFilter extends TokenFilter {
 				tokString = hyphenAmidstAlphaMatcher.group(1) + " " + hyphenAmidstAlphaMatcher.group(2);
 			}
 			tokString = tokString.replaceAll("'", "");
+			if(!tokString.isEmpty()) {
 			symboltok.setTermText(tokString);
 			mOutputList.add(symboltok);
+			}
 
 		}
 		mInputStream.mTokens.clear();

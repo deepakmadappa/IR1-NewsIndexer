@@ -12,7 +12,7 @@ public class StemmerRuleFilter extends TokenFilter{
 
 	@Override
 	public boolean increment() throws TokenizerException {
-		
+
 		Token tok = null;
 		Stemmer stemmer = new Stemmer();
 		Pattern patternNotAlpha = Pattern.compile("[^a-z]");
@@ -24,8 +24,11 @@ public class StemmerRuleFilter extends TokenFilter{
 			}
 			stemmer.add(tok.toString().toCharArray(), tok.toString().length());
 			stemmer.stem();
-			tok.setTermText(stemmer.toString());
-			mOutputList.add(tok);
+			String toktext = stemmer.toString();
+			if(!toktext.isEmpty()) {
+				tok.setTermText(toktext);
+				mOutputList.add(tok);
+			}
 		}
 		mInputStream.mTokens.clear();
 		mInputStream.reset();
