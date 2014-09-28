@@ -15,3 +15,5 @@
 /StopWordsRuleFilter.class
 /SpecialCharacRuleFilter.class
 /SymbolRuleFilter.class
+/AnalyzierChain.class
+/AnalyzerChain.class

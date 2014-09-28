@@ -3,6 +3,8 @@
  */
 package edu.buffalo.cse.irf14.analysis;
 
+import javax.security.sasl.AuthorizeCallback;
+
 import edu.buffalo.cse.irf14.document.FieldNames;
 
 /**
@@ -10,6 +12,7 @@ import edu.buffalo.cse.irf14.document.FieldNames;
  * This factory class is responsible for instantiating "chained" {@link Analyzer} instances
  */
 public class AnalyzerFactory {
+	private static AnalyzerFactory mInstance= null;
 	/**
 	 * Static method to return an instance of the factory class.
 	 * Usually factory classes are defined as singletons, i.e. 
@@ -22,10 +25,12 @@ public class AnalyzerFactory {
 	 * @return An instance of the factory
 	 */
 	public static AnalyzerFactory getInstance() {
-		//TODO: YOU NEED TO IMPLEMENT THIS METHOD
-		return null;
+		if(mInstance == null) {
+			mInstance = new AnalyzerFactory();
+		}
+		return mInstance;
 	}
-	
+
 	/**
 	 * Returns a fully constructed and chained {@link Analyzer} instance
 	 * for a given {@link FieldNames} field
@@ -38,7 +43,6 @@ public class AnalyzerFactory {
 	 * null otherwise
 	 */
 	public Analyzer getAnalyzerForField(FieldNames name, TokenStream stream) {
-		//TODO : YOU NEED TO IMPLEMENT THIS METHOD
-		return null;
+				return null;
 	}
 }
