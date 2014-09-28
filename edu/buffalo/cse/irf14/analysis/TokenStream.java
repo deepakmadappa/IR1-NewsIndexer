@@ -114,4 +114,12 @@ public class TokenStream implements Iterator<Token>{
 		return mTokens.get(mCurrentIndex);
 	}
 	
+	public String toString() {
+		String out = "";
+		for (Token token : mTokens) {
+			out = out + "|" +token.toString();
+		}
+		return out;
+	}
+	
 }

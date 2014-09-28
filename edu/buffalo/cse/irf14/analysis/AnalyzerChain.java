@@ -52,9 +52,20 @@ public class AnalyzerChain implements Analyzer {
 	private TokenStream analyzeForAuthor() throws TokenizerException{
 		TokenFilter accentFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.ACCENT, mStream);
 		while(accentFilter.increment()) {
-			
 		}
-		return accentFilter.getStream();
+		TokenStream inter = accentFilter.getStream();
+		
+		TokenFilter capFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.CAPITALIZATION, inter);
+		while(capFilter.increment()) {
+		}
+		inter = capFilter.getStream();
+		
+		TokenFilter symFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SYMBOL, inter);
+		while(symFilter.increment()) {
+		}
+		inter = symFilter.getStream();
+		
+		return inter;
 	}
 
 	private TokenStream analyzeForAuthorOrg() throws TokenizerException{
@@ -104,15 +115,17 @@ public class AnalyzerChain implements Analyzer {
 		}
 		inter = capFilter.getStream();
 		
+		TokenFilter spclFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SPECIALCHARS, inter);
+		while(spclFilter.increment()) {
+		}
+		inter = spclFilter.getStream();
+		
+		
 		TokenFilter symFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SYMBOL, inter);
 		while(symFilter.increment()) {
 		}
 		inter = symFilter.getStream();
 		
-		TokenFilter spclFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SPECIALCHARS, inter);
-		while(spclFilter.increment()) {
-		}
-		inter = spclFilter.getStream();
 		
 		TokenFilter stopFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.STOPWORD, inter);
 		while(stopFilter.increment()) {
@@ -138,16 +151,17 @@ public class AnalyzerChain implements Analyzer {
 		}
 		TokenStream inter = accentFilter.getStream();
 		
+		TokenFilter spclFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SPECIALCHARS, inter);
+		while(spclFilter.increment()) {
+		}
+		inter = spclFilter.getStream();
+		
 		TokenFilter symFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SYMBOL, inter);
 		while(symFilter.increment()) {
 		}
 		inter = symFilter.getStream();
 		
-		TokenFilter spclFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SPECIALCHARS, inter);
-		while(spclFilter.increment()) {
-		}
-		return spclFilter.getStream();
-
+		return inter;
 	}
 	
 	private TokenStream analyzeForTitle() throws TokenizerException {
@@ -172,16 +186,16 @@ public class AnalyzerChain implements Analyzer {
 		}
 		inter = capFilter.getStream();
 		
-		TokenFilter symFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SYMBOL, inter);
-		while(symFilter.increment()) {
-		}
-		inter = symFilter.getStream();
-		
 		TokenFilter spclFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SPECIALCHARS, inter);
 		while(spclFilter.increment()) {
 		}
 		inter = spclFilter.getStream();
 		
+		TokenFilter symFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SYMBOL, inter);
+		while(symFilter.increment()) {
+		}
+		inter = symFilter.getStream();
+				
 		TokenFilter stopFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.STOPWORD, inter);
 		while(stopFilter.increment()) {
 		}
@@ -213,16 +227,17 @@ public class AnalyzerChain implements Analyzer {
 		}
 		inter = capFilter.getStream();
 		
+		TokenFilter spclFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SPECIALCHARS, inter);
+		while(spclFilter.increment()) {
+		}
+		inter = spclFilter.getStream();
+		
 		TokenFilter symFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SYMBOL, inter);
 		while(symFilter.increment()) {
 		}
 		inter = symFilter.getStream();
 		
-		TokenFilter spclFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SPECIALCHARS, inter);
-		while(spclFilter.increment()) {
-		}
-		return spclFilter.getStream();
-
+		return inter;
 	}
 	
 	@Override

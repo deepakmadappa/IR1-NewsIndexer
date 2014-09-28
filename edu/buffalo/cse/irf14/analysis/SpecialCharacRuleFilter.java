@@ -19,11 +19,12 @@ public class SpecialCharacRuleFilter extends TokenFilter {
 	@Override
 	public TokenStream getStream(){
 		Token splchartok = null;
-		Pattern splcharPattern = Pattern.compile("[^a-zA-Z0-9.,-]");
+		Pattern splcharPattern = Pattern.compile("[^a-zA-Z0-9.\\-' ]");
 		Pattern hyphenPattern = Pattern.compile("((^[A-Za-z]+)(-)([A-Za-z]+)$)");
 		Pattern hyphenPattern2 = Pattern.compile("([^A-Za-z])");
 		while((splchartok = mInputStream.next())!= null) {
-			
+			if(splchartok.toString().isEmpty() || splchartok.toString().equalsIgnoreCase(""))
+				continue;
 			String input = splchartok.toString();
 			String out = input;
 			Matcher splcharMatcher = splcharPattern.matcher(out);

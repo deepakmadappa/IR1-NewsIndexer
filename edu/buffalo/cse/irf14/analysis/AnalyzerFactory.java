@@ -43,6 +43,6 @@ public class AnalyzerFactory {
 	 * null otherwise
 	 */
 	public Analyzer getAnalyzerForField(FieldNames name, TokenStream stream) {
-				return null;
+		return new AnalyzerChain(name, stream);
 	}
 }

@@ -127,7 +127,11 @@ public class Parser {
 				continue;
 			content.add(line);
 		}
-		doc.setArray(FieldNames.CONTENT, content.toArray(new String[content.size()]));
+		StringBuilder sb = new StringBuilder();
+		for (String string : content) {
+			sb.append(" " + string);
+		}
+		doc.setField(FieldNames.CONTENT, sb.toString());
 	}
 	
 /*	private static void extractDateAndPlace(Document doc, String str) throws ParserException {

@@ -55,7 +55,7 @@ public class Runner {
 						writer.addDocument(d);
 					} catch (ParserException e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+						//e.printStackTrace();
 					} 
 					
 				}

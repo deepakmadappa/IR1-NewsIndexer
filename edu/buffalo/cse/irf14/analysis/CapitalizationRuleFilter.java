@@ -16,8 +16,9 @@ public class CapitalizationRuleFilter extends TokenFilter {
 	}
 	@Override
 	public TokenStream getStream() {
-		int index = 0;
+		
 		while(true) {	//loop through all the sentences
+			int index = 0;
 			List<Token> sentence = new ArrayList<Token>();
 			boolean bIsAllUpperSentence = getNextSentence(sentence);
 			if(sentence.isEmpty()) {

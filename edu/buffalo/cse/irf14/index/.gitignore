@@ -2,3 +2,5 @@
 /IndexType.class
 /IndexWriter.class
 /IndexerException.class
+/IndexEntry.class
+/DocumentEntry.class

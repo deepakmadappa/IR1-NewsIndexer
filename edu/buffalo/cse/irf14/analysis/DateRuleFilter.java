@@ -30,32 +30,32 @@ public class DateRuleFilter extends TokenFilter {
 			return new TokenStream(mOutputList);
 		
 		Matcher matcher = Pattern.compile(DDMMMYYYY).matcher(input);
-		if(matcher.find()) { 
+		while(matcher.find()) { 
 			if(!matcher.group(18).matches("[0-9]") && !matcher.group(1).matches("[0-9]"))
 				input = matcher.replaceAll(replaceDDMMMYYYY(matcher.group(0), matcher.group(2), matcher.group(4), matcher.group(17), null, matcher.group(18), matcher.group(1))); 
 		}
 		matcher = Pattern.compile(MMMDDYYYY).matcher(input);
-		if(matcher.find()) {
+		while(matcher.find()) {
 			if(!matcher.group(17).matches("[0-9]") && !matcher.group(1).matches("[0-9]"))
 				input = matcher.replaceAll(replaceDDMMMYYYY(matcher.group(0), matcher.group(14), matcher.group(2), matcher.group(16), null, matcher.group(17), matcher.group(1)));
 		}
 		matcher = Pattern.compile(HHMMSS).matcher(input);
-		if(matcher.find()) {
+		while(matcher.find()) {
 			if(!matcher.group(8).matches("[0-9]") && !matcher.group(1).matches("[0-9]"))
 				input = matcher.replaceAll(replaceHHMMSS(matcher.group(0), matcher.group(2), matcher.group(4), matcher.group(6), matcher.group(7), matcher.group(8), matcher.group(1)));
 		}
 		matcher = Pattern.compile(ADBC).matcher(input);
-		if(matcher.find()) {
+		while(matcher.find()) {
 			if(!matcher.group(4).matches("[0-9]") && !matcher.group(1).matches("[0-9]"))
 				input = matcher.replaceAll( replaceDDMMMYYYY(matcher.group(0), null, null, matcher.group(2), matcher.group(3), matcher.group(4), matcher.group(1)));
 		}
 		matcher = Pattern.compile(YYYYYY).matcher(input);
-		if(matcher.find()) {
+		while(matcher.find()) {
 			if(!matcher.group(4).matches("[0-9]") && !matcher.group(1).matches("[0-9]"))
 				input = matcher.replaceAll(replaceYYYYYY(matcher.group(0), matcher.group(2), matcher.group(3), matcher.group(4), matcher.group(1)));
 		}
 		matcher = Pattern.compile(YYYY).matcher(input);
-		if(matcher.find()) { 
+		while(matcher.find()) { 
 			if(!matcher.group(3).matches("[0-9]") && !matcher.group(1).matches("[0-9]"))
 				input = matcher.replaceAll( replaceDDMMMYYYY(matcher.group(0), null, null, matcher.group(2), null, matcher.group(3), matcher.group(1)));
 		}
