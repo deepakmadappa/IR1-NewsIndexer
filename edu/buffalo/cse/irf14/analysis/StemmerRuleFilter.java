@@ -1,6 +1,5 @@
 package edu.buffalo.cse.irf14.analysis;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StemmerRuleFilter extends TokenFilter{

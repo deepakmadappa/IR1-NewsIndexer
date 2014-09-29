@@ -177,7 +177,7 @@ public class IndexerTest {
 		Map<String, Integer> results;
 		String key;
 		int value;
-		/*for (int i = 0; i < len; i++) {
+		for (int i = 0; i < len; i++) {
 			results = reader.query(Arrays.copyOfRange(queryTerms, 0, i + 1));
 			expected = (HashMap<String, Integer>) intersect(Arrays.copyOfRange(invIdx, 0, i+1));
 			
@@ -194,7 +194,7 @@ public class IndexerTest {
 					assertEquals(value, results.get(key), 0);
 				}
 			}
-		}*/
+		}
 	}
 
 	private Map<String, Integer> intersect(HashMap<String, Integer>...hashMaps) {

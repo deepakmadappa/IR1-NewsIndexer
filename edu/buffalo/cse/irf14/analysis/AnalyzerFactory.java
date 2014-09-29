@@ -3,8 +3,6 @@
  */
 package edu.buffalo.cse.irf14.analysis;
 
-import javax.security.sasl.AuthorizeCallback;
-
 import edu.buffalo.cse.irf14.document.FieldNames;
 
 /**

@@ -6,11 +6,8 @@ package edu.buffalo.cse.irf14.index;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -22,7 +19,6 @@ import edu.buffalo.cse.irf14.analysis.Tokenizer;
 import edu.buffalo.cse.irf14.analysis.TokenizerException;
 import edu.buffalo.cse.irf14.document.Document;
 import edu.buffalo.cse.irf14.document.FieldNames;
-import edu.buffalo.cse.irf14.document.ParserException;
 
 /**
  * @author nikhillo

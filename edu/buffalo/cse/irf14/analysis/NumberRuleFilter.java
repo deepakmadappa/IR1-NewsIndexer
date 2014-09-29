@@ -1,6 +1,5 @@
 package edu.buffalo.cse.irf14.analysis;
 
-import java.io.FilterReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

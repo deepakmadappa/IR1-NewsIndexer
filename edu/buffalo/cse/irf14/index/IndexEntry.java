@@ -2,7 +2,6 @@ package edu.buffalo.cse.irf14.index;
 
 import java.io.Serializable;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.ListIterator;
 
 public class IndexEntry implements Serializable{
