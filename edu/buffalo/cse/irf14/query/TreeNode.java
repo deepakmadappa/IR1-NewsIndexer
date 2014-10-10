@@ -11,4 +11,21 @@ public class TreeNode {
 	public String mSearchString;
 	public boolean mIsNot;
 	public boolean mIsSingleQuotedString;
+	
+	public TreeNode getRightChild() {
+		return mRightChild;
+	}
+	public void setRightChild(TreeNode rightChild) {
+		rightChild.mParent=this;
+		this.mRightChild = rightChild;
+	}
+	
+	public TreeNode getmLeftChild() {
+		return mLeftChild;
+	}
+	public void setLeftChild(TreeNode leftChild) {
+		leftChild.mParent=this;
+		this.mLeftChild = leftChild;
+	}
 }
+
