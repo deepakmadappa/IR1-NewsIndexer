@@ -10,4 +10,5 @@ public class TreeNode {
 	public IndexType mIndexType;
 	public String mSearchString;
 	public boolean mIsNot;
+	public boolean mIsSingleQuotedString;
 }
