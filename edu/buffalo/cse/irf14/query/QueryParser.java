@@ -68,9 +68,10 @@ public class QueryParser {
 		    sParent.setmRightChild(tempRightChild);
 			
 		    sParent.mLeftChild.mIndexType=IndexType.TERM;
-			
-			
 			mNodeMap.put(exp,sParent);
+			
+			
+			
 			
 			
 			
