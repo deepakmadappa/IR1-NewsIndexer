@@ -168,6 +168,7 @@ public class IndexWriter {
 		}
 		Token tok = null;
 		String fileID = doc.getField(FieldNames.FILEID)[0];
+		int position = 0;
 		while((tok = stream.next()) != null) {
 			String termToIndex = tok.toString();
 			IndexEntry indexEntry = indexMap.get(termToIndex);
@@ -177,11 +178,16 @@ public class IndexWriter {
 			LinkedList<DocumentEntry> documentList = indexEntry.mDocumentList;
 			if(documentList.isEmpty() || !documentList.getFirst().mFileID.equalsIgnoreCase(fileID)) {
 				indexEntry.mDocumentList.addFirst(new DocumentEntry(fileID));
+				indexEntry.mDocumentFrequency++;
 				fileIDSet.add(fileID);
 			}
 			indexEntry.mTotalFrequency++;
-			documentList.getFirst().mFrequencyInFile++;
+			DocumentEntry docEntry = documentList.getFirst();
+			docEntry.mFrequencyInFile++;
+			docEntry.mPositionList.add(position);
+			
 			indexMap.put(termToIndex, indexEntry);
+			position++;
 		}
 	}
 

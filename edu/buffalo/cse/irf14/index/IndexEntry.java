@@ -6,10 +6,12 @@ import java.util.ListIterator;
 
 public class IndexEntry implements Serializable{
 	public int mTotalFrequency;
+	public int mDocumentFrequency;
 	public LinkedList<DocumentEntry> mDocumentList;
 	
 	public IndexEntry() {
 		mTotalFrequency = 0;
+		mDocumentFrequency = 0;
 		mDocumentList = new LinkedList<DocumentEntry>();
 	}
 	
