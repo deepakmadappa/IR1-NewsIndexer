@@ -10,21 +10,22 @@ public class TreeNode {
 	public IndexType mIndexType;
 	public String mSearchString;
 	public boolean mIsNot;
+	public boolean mIsSingleQuotedString;
 	
-	public TreeNode getmRightChild() {
+	public TreeNode getRightChild() {
 		return mRightChild;
 	}
-	public void setmRightChild(TreeNode mRightChild) {
-		mRightChild.mParent=this;
-		this.mRightChild = mRightChild;
+	public void setRightChild(TreeNode rightChild) {
+		rightChild.mParent=this;
+		this.mRightChild = rightChild;
 	}
 	
 	public TreeNode getmLeftChild() {
 		return mLeftChild;
 	}
-	public void setmLeftChild(TreeNode mLeftChild) {
-		mLeftChild.mParent=this;
-		this.mLeftChild = mLeftChild;
+	public void setLeftChild(TreeNode leftChild) {
+		leftChild.mParent=this;
+		this.mLeftChild = leftChild;
 	}
 }
 
