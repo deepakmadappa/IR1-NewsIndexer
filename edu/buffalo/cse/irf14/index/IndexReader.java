@@ -27,6 +27,11 @@ public class IndexReader {
 	private IndexType mIndexType;
 	HashMap<String, IndexEntry> mIndex;
 	HashSet<String> mFileIDSet;
+	
+	public HashMap<String, IndexEntry> GetIndex() {
+		return mIndex;
+	}
+	
 	/**
 	 * Default constructor
 	 * @param indexDir : The root directory from which the index is to be read.
