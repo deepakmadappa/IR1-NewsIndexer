@@ -17,8 +17,9 @@ public class QueryParser {
 	}
 	
 	public static void main(String[] args) {
+		
 		try {
-			QueryParser.parse("Cat", "AND");
+			QueryParser.parse("Cat","OR");
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
@@ -44,30 +45,36 @@ public class QueryParser {
 		Query qObject = new Query();
 		HashMap<String,TreeNode> trackNodeMap;
 		trackNodeMap = new HashMap <String,TreeNode>();
-		// build parse tree from user string and initialize it to query class object
 		String uString = "("+userQuery+")";
-		String quoteCheck ;
-		Pattern queryPattern = Pattern.compile("\\([^\\(^\\)]*\\)");
-		Pattern quotesPattern = Pattern.compile("\"(.*?)\"");
+		Pattern queryPattern = Pattern.compile("\\([^\\(^\\)]*\\)");// to get the inner parenthesis group
+		Pattern spacePattern = Pattern.compile("\\s+(?=([^\"]*\"[^\"]*\")*[^\"]*$)");// to replace all whitespaces except within quoted text
 		int i=1;
-		Matcher queryMatcher = queryPattern.matcher(uString);
+		Matcher queryMatcher = queryPattern.matcher(uString); // to check for string within innermost parenthesis
 		while (queryMatcher.find()) {
 
 			String exp = "exp_"+i;
 			String firstMatch = queryMatcher.group(0);
-			Matcher quotesMatcher = quotesPattern.matcher(firstMatch);
-			while (quotesMatcher.find()) {
-
-				quoteCheck = quotesMatcher.group(0); 
-				quoteCheck = quoteCheck.replace(" ","_");
-				//				quoteCheck = quoteCheck.replace("\"","");
-				quotesMatcher.replaceFirst(quoteCheck);
-			}
-			String regExMatch[] = firstMatch.substring(1, firstMatch.length()-2).split(" ");
-
-			for (int j = 0; j < regExMatch.length; j++) {
-				regExMatch[j] = regExMatch[j].replace("_"," ");
-			}
+			Matcher spaceMatcher = spacePattern.matcher(firstMatch);
+			String secondMatch = spaceMatcher.replaceAll("-");
+			String regExMatch[] = secondMatch.substring(1, secondMatch.length()-1).split("-"); // neglecting '(' and ')'
+			//logic for defaulting operator
+//			int regLength = regExMatch.length;
+//			int defaultCheck = 1;
+			
+			/*if((regSubMatch[1] != "AND") && (regSubMatch[1] != "OR") && (regSubMatch[1] != "NOT")) { // defaulting operator
+				int operAppendLen = 2*regLength -1;
+				String operAppend[] = new String[operAppendLen];
+				for (int j = 1; j < regLength; j++) {
+					if((j & 1) == 0) {
+					 operAppend[j] = defaultOperator;
+					} else {
+					 operAppend[j] = regSubMatch[j-1];
+					}
+				}
+				defaultCheck = 2;
+			} */
+			// array list convo
+	
 			TreeNode currentNode = new TreeNode();
 			if(regExMatch.length>1) {
 
@@ -79,28 +86,27 @@ public class QueryParser {
 				}
 				else if(regExMatch[1].equalsIgnoreCase("not")) {
 					currentNode.mIsNot = true;
-					if (defaultOperator.equalsIgnoreCase("and")) {
-						currentNode.mOperator = LogicalOperator.AND;
-					}else if(defaultOperator.equalsIgnoreCase("or")) {
-						currentNode.mOperator = LogicalOperator.OR;
-					}else {
-						throw new QueryParserException("Unknown default operator");
-					}
+					currentNode.mOperator = LogicalOperator.AND;
 				}else {
 					throw new QueryParserException("Unknown operator");
-				}
+				  }
 
 				setChildAndIndexType(regExMatch[0], ChildType.LEFT, currentNode, trackNodeMap);
 				setChildAndIndexType(regExMatch[2], ChildType.RIGHT, currentNode, trackNodeMap);
 
-			}else if(regExMatch.length==1 &&
-					regExMatch.length >4 &&
-					!(regExMatch[0].substring(0, 3).equalsIgnoreCase("exp_"))) {
-
-				currentNode.mSearchString=regExMatch[0];
-				//				currentNode.mLeftChild.mIndexType=IndexType.TERM;
-
-			}			
+			}else if(regExMatch.length==1) {
+				if(regExMatch[0].contains(":")) {						
+					setIndexType(regExMatch[0],currentNode);
+				} else {
+					currentNode.mIndexType = IndexType.TERM;
+				}
+				if (regExMatch[0].length() >4 &&
+						!(regExMatch[0].substring(0, 3).equalsIgnoreCase("exp_"))) {
+					currentNode.mSearchString=regExMatch[0];
+					} else if(regExMatch[0].length() <4 ) {
+					     currentNode.mSearchString=regExMatch[0];
+					}
+			 }// end length == 1		
 
 			trackNodeMap.put(exp,currentNode);
 			if(regExMatch.length>3) {
@@ -110,13 +116,14 @@ public class QueryParser {
 				}			
 				exp = exp + ")";
 			}
-			uString = queryMatcher.replaceFirst(exp);					
+			uString = queryMatcher.replaceFirst(exp);
+			queryMatcher = queryPattern.matcher(uString);
 			i++;
-		} // end of while uQueryMatcher.find()
+		} // end of while uQueryMatcher.find() for inner parenthesis terms
 
 		String firstKey = (String) trackNodeMap.keySet().toArray()[0];
 		qObject.mRootNode = trackNodeMap.get(firstKey);
-		System.out.println("String : "+qObject.toString());
+		System.out.println("String : "+qObject.toString());//for testing
 		String queryparsertext = qObject.toString();
 		if(queryparsertext == null || queryparsertext.isEmpty()) {
 			return null;
@@ -124,6 +131,22 @@ public class QueryParser {
 			return qObject;
 
 	}// end of parse method
+	
+	public static void setIndexType(String nodeString, TreeNode currentNode) {
+	
+		String partNode[] = nodeString.split(":");
+		currentNode.mSearchString = partNode[1];
+		if (partNode[0]=="AUTHOR") {
+			currentNode.mIndexType = IndexType.AUTHOR;				
+		} else if (partNode[0]=="CATEGORY") {
+			currentNode.mIndexType = IndexType.CATEGORY;
+		}else if (partNode[0]=="PLACE") {
+			currentNode.mIndexType = IndexType.PLACE;
+		}else {
+			currentNode.mIndexType = IndexType.TERM;
+		}
+	
+	}
 
 	public static void setChildAndIndexType(String nodeString, ChildType type, 
 			TreeNode currentNode, HashMap<String, TreeNode> trackNodeMap) {
@@ -131,21 +154,11 @@ public class QueryParser {
 		IndexType tempIT = IndexType.TERM;
 		TreeNode child = new TreeNode();
 		if(nodeString.contains(":")) {
+			setIndexType(nodeString,currentNode);	
+		}else
+			child.mIndexType = tempIT;
 
-			String partNode[] = nodeString.split(":");
-			currentNode.mSearchString = partNode[1];
-			if (partNode[0]=="AUTHOR") {
-				currentNode.mIndexType = IndexType.AUTHOR;				
-			} else if (partNode[0]=="CATEGORY") {
-				currentNode.mIndexType = IndexType.CATEGORY;
-			}else if (partNode[0]=="PLACE") {
-				currentNode.mIndexType = IndexType.PLACE;
-			}else {
-				currentNode.mIndexType = IndexType.TERM;
-			}
-		}
-
-		if (nodeString.substring(0, 3).equalsIgnoreCase("exp_")) {
+		if ((nodeString.length() > 4) && (nodeString.substring(0, 4).equalsIgnoreCase("exp_"))) {
 			child = trackNodeMap.get(nodeString);
 			trackNodeMap.remove(nodeString);
 			if(tempIT != IndexType.TERM) {
@@ -153,6 +166,7 @@ public class QueryParser {
 			}
 		}else {
 			child.mSearchString = nodeString;
+			
 		}
 		if(type == ChildType.LEFT) {
 			currentNode.setLeftChild(child);

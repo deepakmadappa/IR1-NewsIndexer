@@ -33,9 +33,9 @@ public class Query {
 		case AUTHOR:return "Author";
 		case CATEGORY:return "Category";
 		case PLACE:return "Place";
-		case TERM:return "Term";
+		case TERM :return "Term";
 		default:
-			return null;
+			return "Term";
 		}
 	}
 
@@ -45,7 +45,11 @@ public class Query {
 		String rightString;
 		String outString;
 		if (node.mSearchString!= null) {
-			outString = indexTypeString(node.mIndexType) + ":" + node.mSearchString;
+//			if (node.mIsNot==true){	
+//			outString = "<" + indexTypeString(node.mIndexType) + ":" + node.mSearchString + ">";
+//			}
+//			else
+				outString = indexTypeString(node.mIndexType) + ":" + node.mSearchString;
 			return outString;
 		}
 		if(node.mLeftChild.mSearchString!= null) {
@@ -67,7 +71,14 @@ public class Query {
 		}
 		
 		String combineOperator = (node.mOperator == LogicalOperator.AND)?"AND":"OR";
+		
+		if (node.mIsNot==true){	
+			outString = leftString +" "+combineOperator+" "+"<" + rightString + ">" ;
+			return outString;
+		}
+		else {
 		outString = leftString +" "+combineOperator+" "+ rightString;
 		return outString;
+		}
 	}
 }
