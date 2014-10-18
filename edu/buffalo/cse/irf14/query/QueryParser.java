@@ -16,15 +16,6 @@ public class QueryParser {
 		LEFT,RIGHT
 	}
 	
-	public static void main(String[] args) {
-		
-		try {
-			QueryParser.parse("Cat","OR");
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		}
-	}
 	/**
 	 * MEthod to parse the given user query into a Query object
 	 * @param userQuery : The query to parse
@@ -57,25 +48,8 @@ public class QueryParser {
 			Matcher spaceMatcher = spacePattern.matcher(firstMatch);
 			String secondMatch = spaceMatcher.replaceAll("-");
 			String regExMatch[] = secondMatch.substring(1, secondMatch.length()-1).split("-"); // neglecting '(' and ')'
-			//logic for defaulting operator
-//			int regLength = regExMatch.length;
-//			int defaultCheck = 1;
-			
-			/*if((regSubMatch[1] != "AND") && (regSubMatch[1] != "OR") && (regSubMatch[1] != "NOT")) { // defaulting operator
-				int operAppendLen = 2*regLength -1;
-				String operAppend[] = new String[operAppendLen];
-				for (int j = 1; j < regLength; j++) {
-					if((j & 1) == 0) {
-					 operAppend[j] = defaultOperator;
-					} else {
-					 operAppend[j] = regSubMatch[j-1];
-					}
-				}
-				defaultCheck = 2;
-			} */
-			// array list convo
-	
 			TreeNode currentNode = new TreeNode();
+			int rightChildIndex = 2; // for defaulting operator
 			if(regExMatch.length>1) {
 
 				if(regExMatch[1].equalsIgnoreCase("and")) {
@@ -88,11 +62,13 @@ public class QueryParser {
 					currentNode.mIsNot = true;
 					currentNode.mOperator = LogicalOperator.AND;
 				}else {
-					throw new QueryParserException("Unknown operator");
-				  }
+					rightChildIndex = 1;
+					currentNode.mOperator = defaultOperator.equals("AND")?LogicalOperator.AND:LogicalOperator.OR;
+//					throw new QueryParserException("Unknown operator");
+				}
 
 				setChildAndIndexType(regExMatch[0], ChildType.LEFT, currentNode, trackNodeMap);
-				setChildAndIndexType(regExMatch[2], ChildType.RIGHT, currentNode, trackNodeMap);
+				setChildAndIndexType(regExMatch[rightChildIndex], ChildType.RIGHT, currentNode, trackNodeMap);
 
 			}else if(regExMatch.length==1) {
 				if(regExMatch[0].contains(":")) {						
@@ -108,10 +84,10 @@ public class QueryParser {
 					}
 			 }// end length == 1		
 
-			trackNodeMap.put(exp,currentNode);
-			if(regExMatch.length>3) {
+			trackNodeMap.put(exp,currentNode);	
+			if(regExMatch.length>rightChildIndex+1) {
 				exp = "(" + exp;
-				for(int appInd = 3; appInd<regExMatch.length;appInd++) {
+				for(int appInd = rightChildIndex+1; appInd<regExMatch.length;appInd++) {
 					exp = exp + " " + regExMatch[appInd];
 				}			
 				exp = exp + ")";
@@ -123,7 +99,7 @@ public class QueryParser {
 
 		String firstKey = (String) trackNodeMap.keySet().toArray()[0];
 		qObject.mRootNode = trackNodeMap.get(firstKey);
-		System.out.println("String : "+qObject.toString());//for testing
+//		System.out.println("String : "+qObject.toString());//for testing
 		String queryparsertext = qObject.toString();
 		if(queryparsertext == null || queryparsertext.isEmpty()) {
 			return null;
@@ -178,7 +154,7 @@ public class QueryParser {
 
 	//TO-DO 
 	//	public void propogateIndexType(TreeNode root){
-	//		Implement this 
+	//		need to Implement this 
 	//	}
 }
 
