@@ -6,10 +6,13 @@ package edu.buffalo.cse.irf14.index;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import edu.buffalo.cse.irf14.analysis.Analyzer;
 import edu.buffalo.cse.irf14.analysis.AnalyzerFactory;
@@ -34,6 +37,7 @@ public class IndexWriter {
 	HashSet<String> mAuthorFileIDSet;
 	HashSet<String> mCategoryFileIDSet;
 	HashSet<String> mPlaceFileIDSet;
+	HashMap<String, Document> mAllDocs;
 	private Tokenizer mTokenizer;
 	/**
 	 * Default constructor
@@ -51,6 +55,7 @@ public class IndexWriter {
 		mAuthorFileIDSet = new HashSet<String>();
 		mCategoryFileIDSet = new HashSet<String>();
 		mPlaceFileIDSet = new HashSet<String>();
+		mAllDocs = new HashMap<String, Document>();
 		System.setProperty("INDEX.DIR", indexDir);
 	}
 
@@ -66,6 +71,7 @@ public class IndexWriter {
 		TokenStream stream = null;
 		TokenStream indexableStream = null;
 		try {
+			mAllDocs.put(d.getField(FieldNames.FILEID)[0], d);
 			String[] author = d.getField(FieldNames.AUTHOR);
 			if(author != null) {
 				stream = mTokenizer.consume(author[0]);
@@ -177,7 +183,9 @@ public class IndexWriter {
 			}
 			LinkedList<DocumentEntry> documentList = indexEntry.mDocumentList;
 			if(documentList.isEmpty() || !documentList.getFirst().mFileID.equalsIgnoreCase(fileID)) {
-				indexEntry.mDocumentList.addFirst(new DocumentEntry(fileID));
+				DocumentEntry docEntry =  new DocumentEntry(fileID);
+				indexEntry.mDocumentList.addFirst(docEntry);
+				doc.mTermDocEntryMap.put(tok.toString(), docEntry);
 				indexEntry.mDocumentFrequency++;
 				fileIDSet.add(fileID);
 			}
@@ -185,7 +193,7 @@ public class IndexWriter {
 			DocumentEntry docEntry = documentList.getFirst();
 			docEntry.mFrequencyInFile++;
 			docEntry.mPositionList.add(position);
-			
+
 			indexMap.put(termToIndex, indexEntry);
 			position++;
 		}
@@ -213,8 +221,14 @@ public class IndexWriter {
 
 		}*/
 		try {
+
+			FileOutputStream allDocsStream = new FileOutputStream(mIndexDir + File.separator + "docs.list");
+			ObjectOutputStream oos = new ObjectOutputStream(allDocsStream);
+			oos.writeObject(constructDocumentToTermIndex());
+			oos.close();
+
 			FileOutputStream termStream = new FileOutputStream(mIndexDir + File.separator + "term.index");
-			ObjectOutputStream oos = new ObjectOutputStream(termStream);
+			oos = new ObjectOutputStream(termStream);
 			oos.writeObject(mTermIndex);
 			oos.close();
 
@@ -232,7 +246,7 @@ public class IndexWriter {
 			oos = new ObjectOutputStream(placeStream);
 			oos.writeObject(mPlaceIndex);
 			oos.close();
-			
+
 			FileOutputStream termFileIDStream = new FileOutputStream(mIndexDir + File.separator + "term.ids");
 			oos = new ObjectOutputStream(termFileIDStream);
 			oos.writeObject(mTermFileIDSet);
@@ -256,5 +270,49 @@ public class IndexWriter {
 			System.out.println("exception occured"+e.getMessage());
 			e.printStackTrace();
 		}
+	}
+
+	public HashMap<String, HashMap<String, TFDFSet>> constructDocumentToTermIndex() {
+		HashMap<String, HashMap<String, TFDFSet>> documentMap = new HashMap<String, HashMap<String, TFDFSet>>();
+
+		List<HashMap<String, IndexEntry>> indexesList = new ArrayList<HashMap<String,IndexEntry>>(4);
+		indexesList.add(mAuthorIndex);
+		indexesList.add(mCategoryIndex);
+		indexesList.add(mPlaceIndex);
+		indexesList.add(mTermIndex);
+		for (HashMap<String, IndexEntry> index : indexesList) {
+			for (Entry<String,IndexEntry> entry : index.entrySet()) {
+				String term = entry.getKey();
+				IndexEntry indexEntry = entry.getValue();
+				for (DocumentEntry docEntry : entry.getValue().mDocumentList) {
+					HashMap<String, TFDFSet> termTFDFMap = null;
+					if(!documentMap.containsKey(docEntry.mFileID)) {
+						termTFDFMap = new HashMap<String, TFDFSet>();
+						TFDFSet set = new TFDFSet();
+						set.mTF = docEntry.mFrequencyInFile;
+						set.mDF = indexEntry.mDocumentFrequency;
+						documentMap.put(docEntry.mFileID, termTFDFMap);
+						termTFDFMap.put(term, set);
+					} else {
+						termTFDFMap = documentMap.get(docEntry.mFileID);
+						TFDFSet set = null;
+						if(termTFDFMap.containsKey(term)) {
+							set = termTFDFMap.get(term);
+							set.mTF += docEntry.mFrequencyInFile;
+							set.mDF += indexEntry.mDocumentFrequency;
+						} else {
+							set = new TFDFSet();
+							set.mTF = docEntry.mFrequencyInFile;
+							set.mDF = indexEntry.mDocumentFrequency;
+						}
+						
+						termTFDFMap.put(term, set);
+					}
+					
+				}
+			}
+
+		}
+		return documentMap;
 	}
 }

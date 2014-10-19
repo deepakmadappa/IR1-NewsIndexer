@@ -1,20 +1,25 @@
 package edu.buffalo.cse.irf14;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import edu.buffalo.cse.irf14.document.ParserException;
+import edu.buffalo.cse.irf14.document.Document;
 import edu.buffalo.cse.irf14.index.DocumentEntry;
 import edu.buffalo.cse.irf14.index.IndexEntry;
 import edu.buffalo.cse.irf14.index.IndexReader;
 import edu.buffalo.cse.irf14.index.IndexType;
+import edu.buffalo.cse.irf14.index.TFDFSet;
 import edu.buffalo.cse.irf14.query.LogicalOperator;
 import edu.buffalo.cse.irf14.query.Query;
 import edu.buffalo.cse.irf14.query.QueryParser;
@@ -33,6 +38,7 @@ public class SearchRunner {
 	private String mCorpusDir = null;
 	private char mMode;
 	private PrintStream mOutStream = null;
+	HashMap<String, HashMap<String, TFDFSet>> mAllDocs = null;
 	private HashMap<String, IndexEntry> mTermIndex = null;
 	private HashMap<String, IndexEntry> mPlaceIndex = null;
 	private HashMap<String, IndexEntry> mAuthorIndex = null;
@@ -50,10 +56,18 @@ public class SearchRunner {
 		mCorpusDir = corpusDir;
 		mMode = mode;
 		mOutStream = stream;
-		mTermIndex = new IndexReader(indexDir, IndexType.TERM).GetIndex();
-		mPlaceIndex = new IndexReader(indexDir, IndexType.PLACE).GetIndex();
-		mAuthorIndex = new IndexReader(indexDir, IndexType.AUTHOR).GetIndex();
-		mCategoryIndex = new IndexReader(indexDir, IndexType.CATEGORY).GetIndex();
+		mTermIndex = new IndexReader(mIndexDir, IndexType.TERM).GetIndex();
+		mPlaceIndex = new IndexReader(mIndexDir, IndexType.PLACE).GetIndex();
+		mAuthorIndex = new IndexReader(mIndexDir, IndexType.AUTHOR).GetIndex();
+		mCategoryIndex = new IndexReader(mIndexDir, IndexType.CATEGORY).GetIndex();
+		try {
+			FileInputStream fin = new FileInputStream(indexDir + File.separator + "docs.list");
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			mAllDocs = (HashMap<String, HashMap<String, TFDFSet>>)(ois.readObject());
+		}catch(Exception ex) {
+			System.out.println("error occured while reading from file");
+		}
+		
 	}
 	
 	/**
@@ -64,7 +78,22 @@ public class SearchRunner {
 	public void query(String userQuery, ScoringModel model) {
 		Query parsedQuery = null;
 		try {
-		 parsedQuery = QueryParser.parse(userQuery, "AND");
+			parsedQuery = QueryParser.parse(userQuery, "AND");
+			List<DocumentEntry> outDocumentList = new ArrayList<DocumentEntry>();
+			boolean isRootNot = ApplyInorderTraversal(outDocumentList , parsedQuery.mRootNode);
+			List<String> docList = new ArrayList<String>();
+			if(isRootNot) {
+				docList = invertDocs(outDocumentList);
+			}
+			else {
+				docList = new ArrayList<String>();
+				for (DocumentEntry doc : outDocumentList) {
+					docList.add(doc.mFileID);
+				}
+			}
+			
+			List<DocumentRelevance> relevantDocs = getRelevantDocs(parsedQuery, docList, model);
+			
 		} catch (Exception ex) {
 			
 		}
@@ -73,11 +102,92 @@ public class SearchRunner {
 		}
 	}
 	
+	public List<DocumentRelevance> getRelevantDocs(Query parsedQuery,
+			List<String> docList, ScoringModel model) {
+		List<DocumentRelevance> unSortedList = null;
+		if(model == ScoringModel.TFIDF) {
+			unSortedList = getTFIDFRelevance(parsedQuery, docList, model);
+		}
+		unSortedList.sort(new Comparator<DocumentRelevance>() {
+			public int compare(DocumentRelevance o1, DocumentRelevance o2) {
+				if(o1.mRelavance < o2.mRelavance) {
+					return 1;
+				} else if(o1.mRelavance > o2.mRelavance) {
+					return -1;
+				}
+				return 0;
+			}
+		});
+/*		double maxRelavance = unSortedList.get(0).mRelavance;
+		for (DocumentRelevance documentRelevance : unSortedList) {
+			documentRelevance.mRelavance = documentRelevance.mRelavance/ maxRelavance;
+		}*/
+		return unSortedList;
+	}
+
+	private List<DocumentRelevance> getTFIDFRelevance(Query parsedQuery,
+			List<String> docList, ScoringModel model) {
+		List<DocumentRelevance> outList = new ArrayList<DocumentRelevance>();
+		Hashtable<String, DocumentRelevance> docRelevanceTable = new Hashtable<String, DocumentRelevance>();
+		for (TreeNode node : parsedQuery.mLeafNodes) {
+			if(node.mIsNot) {
+				continue;	//ignore not nodes
+			}
+			//iterate term by term
+			List<DocumentEntry> docsForTerm = node.mDocsForTerm;
+			double idf = ((double)mAllDocs.size())/((double) docsForTerm.size());
+			idf = Math.log10(idf);
+			for (DocumentEntry documentEntry : docsForTerm) {
+				int tf = documentEntry.mFrequencyInFile;
+				double tfw = 1 + Math.log10(tf);
+				double tfidf = tfw * idf;
+				DocumentRelevance docRelevanceToUpdate = null;
+				if(docRelevanceTable.containsKey(documentEntry.mFileID)) {
+					docRelevanceToUpdate = docRelevanceTable.get(documentEntry.mFileID);
+				} else {
+					docRelevanceToUpdate = new DocumentRelevance(documentEntry.mFileID);
+					docRelevanceTable.put(documentEntry.mFileID, docRelevanceToUpdate);
+				}
+				docRelevanceToUpdate.mRelavance += tfidf;
+			}
+		}
+		
+		for (DocumentRelevance documentRelevance : docRelevanceTable.values()) {
+			//documentRelevance.mRelavance = documentRelevance.mRelavance/(getDocumentNormalizationTerm(documentRelevance.mDocID) * Math.sqrt(parsedQuery.mLeafNodes.size()) );
+			double normalizationTerm = getDocumentNormalizationTerm(documentRelevance.mDocID);
+			documentRelevance.mRelavance = documentRelevance.mRelavance/(normalizationTerm * Math.sqrt(parsedQuery.mLeafNodes.size()) );
+			outList.add(documentRelevance);
+		}
+		return outList;
+	}
+
+	private double getDocumentNormalizationTerm(String docID) {
+		HashMap<String, TFDFSet> document = mAllDocs.get(docID);
+		int N = mAllDocs.size();
+		double normalizationTerm = 0;
+		for (Entry<String, TFDFSet> term : document.entrySet()) {
+			TFDFSet tfdf = term.getValue();
+			double tfidf = (1 + Math.log10(tfdf.mTF)) * (Math.log10(((double)N)/((double)(tfdf.mDF))));
+			normalizationTerm += Math.pow(tfidf, 2);
+		}
+		return Math.sqrt(normalizationTerm);
+	}
+
+	private List<String> invertDocs(List<DocumentEntry> outDocumentList) {
+		List<String> outlist = new ArrayList<String>();
+		for (DocumentEntry documentEntry : outDocumentList) {
+			if(!mAllDocs.containsKey(documentEntry.mFileID)) {
+				outlist.add(documentEntry.mFileID);
+			}
+		}
+		return outlist;
+	}
+
 	/**
 	 * 
 	 * return: returns if the return if the out
 	 */
-	private boolean ApplyInorderTraversal(List<DocumentEntry> outDocumentList, TreeNode node) throws QueryParserException{
+	public boolean ApplyInorderTraversal(List<DocumentEntry> outDocumentList, TreeNode node) throws QueryParserException{
 		if(node.mLeftChild == null && node.mRightChild == null) {
 			//this is leaf node we need to evaluate the term here, and fill the outList;
 			String searchString = node.mSearchString;
@@ -87,6 +197,7 @@ public class SearchRunner {
 				IndexEntry ret = getIndexForString(searchString, node.mIndexType);
 				if(ret != null) {
 					outDocumentList.addAll(ret.mDocumentList);
+					node.mDocsForTerm.addAll(ret.mDocumentList);
 				}
 			}
 			return node.mIsNot;
@@ -108,41 +219,41 @@ public class SearchRunner {
 		if(node.mOperator == LogicalOperator.AND) {
 			if(isLeftNOT == false && isRightNOT == false) { 
 				//there is no negation on either side, return the intersection
-				outDocumentList = intersect(leftList, rightList);
+				outDocumentList.addAll(intersect(leftList, rightList));
 				return false;
 			}
 			if(isLeftNOT == true && isRightNOT == true) {
 				//both are negated use De'Morgans law and return negation of UNION
-				outDocumentList = union(leftList, rightList);
+				outDocumentList.addAll(union(leftList, rightList));
 				return true;
 			}
 			if(isLeftNOT == true) {
 				//left is negative return right - left;
-				outDocumentList = difference(rightList, leftList);
+				outDocumentList.addAll(difference(rightList, leftList));
 				return false;
 			} else {
 				//right is negated return left - right;
-				outDocumentList = difference(leftList, rightList);
+				outDocumentList.addAll(difference(leftList, rightList));
 				return false;
 			}
 		} else {	//OR
 			if(isLeftNOT == false && isRightNOT == false) { 
 				//there is no negation on either side, return the UNION
-				outDocumentList = union(leftList, rightList);
+				outDocumentList.addAll(union(leftList, rightList));
 				return false;
 			}
 			if(isLeftNOT == true && isRightNOT == true) {
 				//both are negated use De'Morgans law and return negation of INTERSECTION
-				outDocumentList = intersect(leftList, rightList);
+				outDocumentList.addAll(intersect(leftList, rightList));
 				return true;
 			}
 			if(isLeftNOT == true) {
 				//left is negative return ~(left - right);
-				outDocumentList = difference(leftList, rightList);
+				outDocumentList.addAll(difference(leftList, rightList));
 				return true;
 			} else {
 				//right is negated return left - right;
-				outDocumentList = difference(rightList, leftList);
+				outDocumentList.addAll(difference(rightList, leftList));
 				return true;
 			}
 		}
@@ -215,7 +326,7 @@ public class SearchRunner {
 				boolean bPositionsAreCorrect = true;
 				//foreach position of the first term check the other terms positions
 				for (int j=1; j<lstAllTermsPresentDocs.size(); j++) {
-					if(!lstAllTermsPresentDocs.get(i).get(j).mPositionList.contains(position+j)) {
+					if(!lstAllTermsPresentDocs.get(j).get(i).mPositionList.contains(position+j)) {
 						bPositionsAreCorrect = false;
 						break;
 					}
@@ -233,6 +344,7 @@ public class SearchRunner {
 				outDocumentList.add(copyDocEntry);
 			}
 		}
+		node.mDocsForTerm.addAll(outDocumentList);
 		return node.mIsNot;
 	}
 	

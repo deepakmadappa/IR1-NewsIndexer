@@ -9,6 +9,7 @@ public class CapitalizationRuleFilter extends TokenFilter {
 	public CapitalizationRuleFilter(TokenStream stream) {
 		super(stream);
 	}
+	/*
 	@Override
 	public boolean increment() throws TokenizerException {
 		while(true) {	//loop through all the sentences
@@ -66,6 +67,14 @@ public class CapitalizationRuleFilter extends TokenFilter {
 		mInputStream.mTokens.addAll(mOutputList);
 		return false;
 	}
+	*/
+	public boolean increment() throws TokenizerException {
+		for (Token token : mInputStream.mTokens) {
+			token.setTermText(token.getTermText().toLowerCase());
+		}
+		return false;
+	}
+	
 	@Override
 	public TokenStream getStream() {
 		return mInputStream; 

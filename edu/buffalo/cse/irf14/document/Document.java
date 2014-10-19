@@ -3,15 +3,20 @@
  */
 package edu.buffalo.cse.irf14.document;
 
+import java.io.Serializable;
 import java.util.HashMap;
+
+import edu.buffalo.cse.irf14.index.DocumentEntry;
 
 /**
  * @author nikhillo
  * Wrapper class that holds {@link FieldNames} to value mapping
  */
-public class Document {
+public class Document implements Serializable{
 	//Sample implementation - you can change this if you like
 	private HashMap<FieldNames, String[]> map;
+	public HashMap<String, DocumentEntry> mTermDocEntryMap;
+	public double mNormalizationValue;
 	
 	/**
 	 * Default constructor
@@ -19,6 +24,8 @@ public class Document {
 	public Document() {
 		//TBD filling in the initial capacity may make it more efficient
 		map = new HashMap<FieldNames, String[]>();
+		mTermDocEntryMap = new HashMap<String, DocumentEntry>();
+		mNormalizationValue = 0;
 	}
 	
 	/**
