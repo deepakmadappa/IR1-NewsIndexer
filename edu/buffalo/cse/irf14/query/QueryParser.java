@@ -15,7 +15,7 @@ public class QueryParser {
 	private enum ChildType {
 		LEFT,RIGHT
 	}
-/*	public static void main(String[] args) {
+	/*	public static void main(String[] args) {
 		try {
 			QueryParser.parse("Cat AND Mat", "OR");
 		} catch (Exception e) {
@@ -23,7 +23,7 @@ public class QueryParser {
 			e.printStackTrace();
 		}
 	}*/
-	
+
 	/**
 	 * MEthod to parse the given user query into a Query object
 	 * @param userQuery : The query to parse
@@ -72,7 +72,7 @@ public class QueryParser {
 				}else {
 					rightChildIndex = 1;
 					currentNode.mOperator = defaultOperator.equals("AND")?LogicalOperator.AND:LogicalOperator.OR;
-//					throw new QueryParserException("Unknown operator");
+					//					throw new QueryParserException("Unknown operator");
 				}
 
 				setChildAndIndexType(regExMatch[0], ChildType.LEFT, currentNode, trackNodeMap);
@@ -86,16 +86,16 @@ public class QueryParser {
 				}
 				if (regExMatch[0].length() >4 &&
 						!(regExMatch[0].substring(0, 3).equalsIgnoreCase("exp_"))) {
-					if(regExMatch[0].contains("\""));
-					currentNode.mIsSingleQuotedString = true;
+					if(regExMatch[0].contains("\""))
+						currentNode.mIsSingleQuotedString = true;
 					currentNode.mSearchString=regExMatch[0];
-			        
-					} else if(regExMatch[0].length() <4 ) {
-							if(regExMatch[0].contains("\""));
-							currentNode.mIsSingleQuotedString = true;
-						    currentNode.mSearchString=regExMatch[0];
-					}
-			 }// end length == 1		
+
+				} else if(regExMatch[0].length() <= 4 ) {
+					if(regExMatch[0].contains("\""))
+						currentNode.mIsSingleQuotedString = true;
+					currentNode.mSearchString=regExMatch[0];
+				}
+			}// end length == 1		
 
 			trackNodeMap.put(exp,currentNode);	
 			if(regExMatch.length>rightChildIndex+1) {
@@ -112,23 +112,23 @@ public class QueryParser {
 
 		String firstKey = (String) trackNodeMap.keySet().toArray()[0];
 		qObject.mRootNode = trackNodeMap.get(firstKey);
-//		System.out.println("String : "+qObject.toString());//for testing
+		//		System.out.println("String : "+qObject.toString());//for testing
 		String queryparsertext = qObject.toString();
-		
+
 		qObject.populateLeaves();
 		for (int j = 0; j < qObject.mLeafNodes.size(); j++) {
 			System.out.println(qObject.mLeafNodes.get(j));
 		}
-		
+
 		if(queryparsertext == null || queryparsertext.isEmpty()) {
 			return null;
 		}else
 			return qObject;
 
 	}// end of parse method
-	
+
 	public static void setIndexType(String nodeString, TreeNode currentNode) {
-	
+
 		String partNode[] = nodeString.split(":");
 		currentNode.mSearchString = partNode[1];
 		if (partNode[0]=="AUTHOR") {
@@ -140,7 +140,7 @@ public class QueryParser {
 		}else {
 			currentNode.mIndexType = IndexType.TERM;
 		}
-	
+
 	}
 
 	public static void setChildAndIndexType(String nodeString, ChildType type, 
@@ -163,7 +163,7 @@ public class QueryParser {
 			if(nodeString.contains("\""));
 			currentNode.mIsSingleQuotedString = true;
 			child.mSearchString = nodeString;
-			
+
 		}
 		if(type == ChildType.LEFT) {
 			currentNode.setLeftChild(child);
