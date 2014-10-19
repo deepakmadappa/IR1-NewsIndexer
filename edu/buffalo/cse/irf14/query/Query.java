@@ -47,6 +47,7 @@ public class Query {
 		if (leafNode.mSearchString != null) {
 			
 			mLeafNodes.add(leafNode);
+			return ;
 			
 		} else {
 			
