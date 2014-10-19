@@ -17,7 +17,7 @@ public class Query {
 	private String stringRepresentation = null;
 	
 	public Query() {
-		mLeafNodes = new ArrayList<TreeNode>();
+//		mLeafNodes = new ArrayList<TreeNode>();
 	}
 	/**
 	 * Method to convert given parsed query into string
@@ -34,7 +34,36 @@ public class Query {
 		}
 		return null;
 	}
+	
+	public void populateLeaves() {
+//		mLeafNodes = null;
+		mLeafNodes = new ArrayList<TreeNode>();		
+		buildLeaves (mRootNode);
+		
+	}
 
+	public void buildLeaves(TreeNode leafNode){
+		
+		if (leafNode.mSearchString != null) {
+			
+			mLeafNodes.add(leafNode);
+			
+		} else {
+			
+			if(leafNode.mLeftChild.mSearchString != null) {
+				mLeafNodes.add(leafNode.mLeftChild);
+			}else {
+				buildLeaves(leafNode.mLeftChild);
+			}
+			if(leafNode.mRightChild.mSearchString != null) {
+				mLeafNodes.add(leafNode.mRightChild);
+			}else {
+				buildLeaves(leafNode.mRightChild);
+			}
+		}
+	}
+	
+	
 	public String indexTypeString(IndexType iType) {
 		
 		switch (iType) {

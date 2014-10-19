@@ -15,6 +15,14 @@ public class QueryParser {
 	private enum ChildType {
 		LEFT,RIGHT
 	}
+/*	public static void main(String[] args) {
+		try {
+			QueryParser.parse("Cat AND Mat", "OR");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+	}*/
 	
 	/**
 	 * MEthod to parse the given user query into a Query object
@@ -78,9 +86,14 @@ public class QueryParser {
 				}
 				if (regExMatch[0].length() >4 &&
 						!(regExMatch[0].substring(0, 3).equalsIgnoreCase("exp_"))) {
+					if(regExMatch[0].contains("\""));
+					currentNode.mIsSingleQuotedString = true;
 					currentNode.mSearchString=regExMatch[0];
+			        
 					} else if(regExMatch[0].length() <4 ) {
-					     currentNode.mSearchString=regExMatch[0];
+							if(regExMatch[0].contains("\""));
+							currentNode.mIsSingleQuotedString = true;
+						    currentNode.mSearchString=regExMatch[0];
 					}
 			 }// end length == 1		
 
@@ -101,6 +114,12 @@ public class QueryParser {
 		qObject.mRootNode = trackNodeMap.get(firstKey);
 //		System.out.println("String : "+qObject.toString());//for testing
 		String queryparsertext = qObject.toString();
+		
+		qObject.populateLeaves();
+		for (int j = 0; j < qObject.mLeafNodes.size(); j++) {
+			System.out.println(qObject.mLeafNodes.get(j));
+		}
+		
 		if(queryparsertext == null || queryparsertext.isEmpty()) {
 			return null;
 		}else
@@ -113,7 +132,7 @@ public class QueryParser {
 		String partNode[] = nodeString.split(":");
 		currentNode.mSearchString = partNode[1];
 		if (partNode[0]=="AUTHOR") {
-			currentNode.mIndexType = IndexType.AUTHOR;				
+			currentNode.mIndexType = IndexType.AUTHOR;
 		} else if (partNode[0]=="CATEGORY") {
 			currentNode.mIndexType = IndexType.CATEGORY;
 		}else if (partNode[0]=="PLACE") {
@@ -141,6 +160,8 @@ public class QueryParser {
 				//				propogateIndexType(child);
 			}
 		}else {
+			if(nodeString.contains("\""));
+			currentNode.mIsSingleQuotedString = true;
 			child.mSearchString = nodeString;
 			
 		}
