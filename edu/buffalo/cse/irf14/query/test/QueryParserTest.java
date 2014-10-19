@@ -10,14 +10,17 @@ import static org.junit.Assert.assertEquals;
 public class QueryParserTest {
 	@Test
 	public final void testQuery() {
+		String input[] = {"hello","hello world","\"hello world\"","orange AND yellow","(black OR blue) AND bruises"};
+		String output[] = {"{Term:hello}","{Term:hello OR Term:world}","{Term:\"hello world\"}","{Term:orange AND Term:yellow}","{[Term:black OR Term:blue] AND Term:bruises}"};
 		Query query = null;
 		try {
-			query = QueryParser.parse("hello world", "AND");
+			for (int i = 0; i < 6 ; i++) {
+				query = QueryParser.parse(input[i], "OR");
+				assertEquals(output[i] , query.toString());
+			}
 		}
 		catch (Exception ex) {
 			
 		}
-		String str = query.toString();
-		assertEquals("", str);
 	}
 }
