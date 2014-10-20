@@ -24,14 +24,14 @@ public class QueryParser {
 		LEFT,RIGHT
 	}
 	
-//	public static void main(String[] args) {
-//		try {
-//			QueryParser.parse("Cat AND Ba#nk OR tapioca", "OR");
-//		} catch (Exception e) {
-//			// TODO: handle exception
-//			e.printStackTrace();
-//		}
-//	}
+	public static void main(String[] args) {
+		try {
+			QueryParser.parse("Paris", "OR");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * MEthod to parse the given user query into a Query object
@@ -64,7 +64,8 @@ public class QueryParser {
 		while (queryMatcher.find()) {
 
 			String exp = "exp_"+i;
-			String firstMatch = queryMatcher.group(0);
+			String firstMatch = queryMatcher.group(0).trim();
+			
 			Matcher spaceMatcher = spacePattern.matcher(firstMatch);
 			String secondMatch = spaceMatcher.replaceAll("-");
 			String regExMatch[] = secondMatch.substring(1, secondMatch.length()-1).split("-"); // neglecting '(' and ')'
@@ -147,7 +148,7 @@ public class QueryParser {
 
 		String firstKey = (String) trackNodeMap.keySet().toArray()[0];
 		qObject.mRootNode = trackNodeMap.get(firstKey);
-//		System.out.println("String : "+qObject.toString());//for testing
+		System.out.println("String : "+qObject.toString());//for testing
 		String queryparsertext = qObject.toString();
 
 		qObject.populateLeaves();
@@ -169,7 +170,7 @@ public class QueryParser {
 		TokenStream tStream = null;
 		TokenStream qStream = null;
 		Tokenizer mTokenizer = new Tokenizer();
-//		currentNode.mSearchString = partNode[1];
+		currentNode.mSearchString = partNode[1];
 		if (partNode[0].equalsIgnoreCase("Author")) {
 			
 			try {
@@ -198,6 +199,7 @@ public class QueryParser {
 		}else if (partNode[0].equalsIgnoreCase("Place")) {
 			
 			try {
+				
 				tStream = mTokenizer.consume(partNode[1]);
 				Analyzer contentAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.PLACE, tStream);
 				while(contentAnalyzer.increment()) {}

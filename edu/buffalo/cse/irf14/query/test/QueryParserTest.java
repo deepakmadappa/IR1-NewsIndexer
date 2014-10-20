@@ -10,8 +10,8 @@ import static org.junit.Assert.assertEquals;
 public class QueryParserTest {
 	@Test
 	public final void testQuery() {
-		String input[] = {"hello","hello world","\"hello world\"","orange AND yellow","(black OR blue) AND bruises","Author:Cat AND Mat"};
-		String output[] = {"{Term:hello}","{Term:hello OR Term:world}","{Term:hello world}","{Term:orang AND Term:yellow}","{[Term:black OR Term:blue] AND Term:bruis}","{Author:cat AND Term:mat}"};
+		String input[] = {"hello","hello world","\"hello world\"","orange AND yellow","(black OR blue) AND bruises","Author:Cat AND Mat","Category:oil AND place:Dubai AND ( price OR cost )","place:paris AND government"};
+		String output[] = {"{Term:hello}","{Term:hello OR Term:world}","{Term:hello world}","{Term:orang AND Term:yellow}","{[Term:black OR Term:blue] AND Term:bruis}","{Author:cat AND Term:mat}","{Category:oil AND Place:dubai AND [Term:price OR Term:cost]}","{Place:paris AND Term:govern}"};
 		Query query = null;
 		try {
 
