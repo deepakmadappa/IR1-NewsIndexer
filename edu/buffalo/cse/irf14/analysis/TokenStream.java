@@ -117,7 +117,7 @@ public class TokenStream implements Iterator<Token>{
 	public String toString() {
 		String out = "";
 		for (Token token : mTokens) {
-			out = out + "|" +token.toString();
+			out = out + " " +token.toString();
 		}
 		return out;
 	}
