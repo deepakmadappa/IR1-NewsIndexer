@@ -11,7 +11,8 @@ public class StemmerRuleFilter extends TokenFilter{
 
 	@Override
 	public boolean increment() throws TokenizerException {
-
+		return false;
+		/*
 		Token tok = null;
 		Stemmer stemmer = new Stemmer();
 		Pattern patternNotAlpha = Pattern.compile("[^a-z]");
@@ -33,6 +34,7 @@ public class StemmerRuleFilter extends TokenFilter{
 		mInputStream.reset();
 		mInputStream.mTokens.addAll(mOutputList);
 		return false;
+		*/
 	}
 
 	@Override
