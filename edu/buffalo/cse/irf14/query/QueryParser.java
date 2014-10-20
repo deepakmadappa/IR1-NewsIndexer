@@ -15,14 +15,14 @@ public class QueryParser {
 	private enum ChildType {
 		LEFT,RIGHT
 	}
-	/*	public static void main(String[] args) {
+		public static void main(String[] args) {
 		try {
-			QueryParser.parse("Cat AND Mat", "OR");
+			QueryParser.parse("Category:War OR Author:(Dutt AND Rushdie) OR Category:(Place AND Mat)", "OR");
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
-	}*/
+	}
 
 	/**
 	 * MEthod to parse the given user query into a Query object
@@ -88,12 +88,15 @@ public class QueryParser {
 						!(regExMatch[0].substring(0, 3).equalsIgnoreCase("exp_"))) {
 					if(regExMatch[0].contains("\""))
 						currentNode.mIsSingleQuotedString = true;
-					currentNode.mSearchString=regExMatch[0];
+					if (currentNode.mSearchString == null) 
+						currentNode.mSearchString = regExMatch[0];
+//					currentNode.mSearchString=regExMatch[0];
 
 				} else if(regExMatch[0].length() <= 4 ) {
 					if(regExMatch[0].contains("\""))
 						currentNode.mIsSingleQuotedString = true;
-					currentNode.mSearchString=regExMatch[0];
+					if (currentNode.mSearchString == null) 
+						currentNode.mSearchString=regExMatch[0];
 				}
 			}// end length == 1		
 
@@ -112,7 +115,7 @@ public class QueryParser {
 
 		String firstKey = (String) trackNodeMap.keySet().toArray()[0];
 		qObject.mRootNode = trackNodeMap.get(firstKey);
-		//		System.out.println("String : "+qObject.toString());//for testing
+				System.out.println("String : "+qObject.toString());//for testing
 		String queryparsertext = qObject.toString();
 
 		qObject.populateLeaves();
@@ -131,11 +134,11 @@ public class QueryParser {
 
 		String partNode[] = nodeString.split(":");
 		currentNode.mSearchString = partNode[1];
-		if (partNode[0]=="AUTHOR") {
+		if (partNode[0].equalsIgnoreCase("Author")){
 			currentNode.mIndexType = IndexType.AUTHOR;
-		} else if (partNode[0]=="CATEGORY") {
+		} else if (partNode[0].equalsIgnoreCase("Category")) {
 			currentNode.mIndexType = IndexType.CATEGORY;
-		}else if (partNode[0]=="PLACE") {
+		}else if (partNode[0].equalsIgnoreCase("Place")) {
 			currentNode.mIndexType = IndexType.PLACE;
 		}else {
 			currentNode.mIndexType = IndexType.TERM;
@@ -147,22 +150,29 @@ public class QueryParser {
 			TreeNode currentNode, HashMap<String, TreeNode> trackNodeMap) {
 
 		IndexType tempIT = IndexType.TERM;
+		boolean colonIndicator = false;
 		TreeNode child = new TreeNode();
 		if(nodeString.contains(":")) {
-			setIndexType(nodeString,currentNode);	
+			setIndexType(nodeString,child);
+			colonIndicator = true;
+			
 		}else
 			child.mIndexType = tempIT;
 
 		if ((nodeString.length() > 4) && (nodeString.substring(0, 4).equalsIgnoreCase("exp_"))) {
 			child = trackNodeMap.get(nodeString);
 			trackNodeMap.remove(nodeString);
-			if(tempIT != IndexType.TERM) {
-				//				propogateIndexType(child);
-			}
+			
+		}else if((nodeString.length() > 4) && nodeString.contains(":") && nodeString.contains("exp_")){
+			String splitStrings[] = nodeString.split(":");
+			child = trackNodeMap.get(splitStrings[1]);
+			trackNodeMap.remove(splitStrings[1]);
+			propogateIndexType(child,splitStrings[0]);
 		}else {
-			if(nodeString.contains("\""));
-			currentNode.mIsSingleQuotedString = true;
-			child.mSearchString = nodeString;
+			if(nodeString.contains("\""))
+				child.mIsSingleQuotedString = true;
+			if (colonIndicator == false) 
+				child.mSearchString = nodeString;
 
 		}
 		if(type == ChildType.LEFT) {
@@ -174,8 +184,14 @@ public class QueryParser {
 	}
 
 	//TO-DO 
-	//	public void propogateIndexType(TreeNode root){
-	//		need to Implement this 
-	//	}
+		public static void propogateIndexType(TreeNode root, String indexTypeStr){
+//			need to Implement this 
+			if (root.mSearchString != null) {
+				setIndexType(indexTypeStr+":"+root.mSearchString, root);
+			}else{
+				propogateIndexType(root.mLeftChild,indexTypeStr);
+				propogateIndexType(root.mRightChild, indexTypeStr);
+			}
+		}
 }
 
