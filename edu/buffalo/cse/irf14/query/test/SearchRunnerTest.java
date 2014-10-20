@@ -46,7 +46,7 @@ public class SearchRunnerTest {
 			query.mRootNode = root;
 			query.mLeafNodes.add(root);
 			//query.mLeafNodes.add(right);
-			mSearchRunner.getRelevantDocs(query, docs, ScoringModel.TFIDF);
+		//	mSearchRunner.getRelevantDocs(query, docs, ScoringModel.TFIDF);
 		} catch(Exception e) {
 			
 		}

@@ -1,9 +1,14 @@
 package edu.buffalo.cse.irf14;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -13,8 +18,10 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import edu.buffalo.cse.irf14.document.Document;
+import edu.buffalo.cse.irf14.document.ParserException;
 import edu.buffalo.cse.irf14.index.DocumentEntry;
 import edu.buffalo.cse.irf14.index.DocumentObject;
 import edu.buffalo.cse.irf14.index.IndexEntry;
@@ -78,9 +85,9 @@ public class SearchRunner {
 		}catch(Exception ex) {
 			System.out.println("error occured while reading from file");
 		}
-		
+
 	}
-	
+
 	/**
 	 * Method to execute given query in the Q mode
 	 * @param userQuery : Query to be parsed and executed
@@ -93,25 +100,25 @@ public class SearchRunner {
 			parsedQuery = QueryParser.parse(userQuery, "AND");
 			List<DocumentEntry> outDocumentList = new ArrayList<DocumentEntry>();
 			boolean isRootNot = ApplyInorderTraversal(outDocumentList , parsedQuery.mRootNode);
-			List<String> docList = new ArrayList<String>();
+			Set<String> docSet = null;
 			if(isRootNot) {
-				docList = invertDocs(outDocumentList);
+				docSet = invertDocs(outDocumentList);
 			}
 			else {
-				docList = new ArrayList<String>();
+				docSet = new HashSet<String>();
 				for (DocumentEntry doc : outDocumentList) {
-					docList.add(doc.mFileID);
+					docSet.add(doc.mFileID);
 				}
 			}
-			
-			List<DocumentRelevance> relevantDocs = getRelevantDocs(parsedQuery, docList, model);
-			
+
+			List<DocumentRelevance> relevantDocs = getRelevantDocs(parsedQuery, docSet, model);
+
 			long endTime = System.currentTimeMillis();
 			String totalTime = String.valueOf(endTime-startTime);
 			mOutStream.println("Query:" + userQuery);
 			mOutStream.println("Time Taken:" + totalTime);
-			
-			
+
+
 			//we got the docs now write them to printStream
 			int count = 0;
 			for (DocumentRelevance documentRelevance : relevantDocs) {
@@ -123,15 +130,15 @@ public class SearchRunner {
 				if(count == 10)
 					break; //only top 10
 			}
-			
+
 		} catch (Exception ex) {
-			
+
 		}
 		if(parsedQuery == null) {
 			System.out.println("QueryParser.parse returned null");
 		}
 	}
-	
+
 	private String getSnippetForDoc(String mDocID, String mCorpusDir2,
 			List<TreeNode> mLeafNodes) {
 		// TODO Auto-generated method stub
@@ -139,7 +146,7 @@ public class SearchRunner {
 	}
 
 	public List<DocumentRelevance> getRelevantDocs(Query parsedQuery,
-			List<String> docList, ScoringModel model) {
+			Set<String> docList, ScoringModel model) {
 		List<DocumentRelevance> unSortedList = null;
 		if(model == ScoringModel.TFIDF) {
 			unSortedList = getTFIDFRelevance(parsedQuery, docList, model);
@@ -156,7 +163,7 @@ public class SearchRunner {
 				return 0;
 			}
 		});
-/*		double maxRelavance = unSortedList.get(0).mRelavance;
+		/*		double maxRelavance = unSortedList.get(0).mRelavance;
 		for (DocumentRelevance documentRelevance : unSortedList) {
 			documentRelevance.mRelavance = documentRelevance.mRelavance/ maxRelavance;
 		}*/
@@ -164,8 +171,8 @@ public class SearchRunner {
 	}
 
 	private List<DocumentRelevance> getOkapiRelevance(Query parsedQuery,
-			List<String> docList, ScoringModel model) {
-		
+			Set<String> docList, ScoringModel model) {
+
 		Hashtable<String, DocumentRelevance> docRelevanceTable = new Hashtable<String, DocumentRelevance>();
 		for (TreeNode node : parsedQuery.mLeafNodes) {
 			if(node.mIsNot) {
@@ -175,6 +182,8 @@ public class SearchRunner {
 			double idf = ((double)mAllDocs.size())/((double) docsForTerm.size());
 			idf = Math.log10(idf);
 			for (DocumentEntry documentEntry : docsForTerm) {
+				if(!docList.contains(documentEntry.mFileID))
+					continue;	//need to apply only on final list
 				int tf = documentEntry.mFrequencyInFile;
 				double tfw = 1 + Math.log10(tf);
 				DocumentRelevance docRelevanceToUpdate = null;
@@ -195,7 +204,7 @@ public class SearchRunner {
 	}
 
 	private List<DocumentRelevance> getTFIDFRelevance(Query parsedQuery,
-			List<String> docList, ScoringModel model) {
+			Set<String> docList, ScoringModel model) {
 		List<DocumentRelevance> outList = new ArrayList<DocumentRelevance>();
 		Hashtable<String, DocumentRelevance> docRelevanceTable = new Hashtable<String, DocumentRelevance>();
 		for (TreeNode node : parsedQuery.mLeafNodes) {
@@ -207,6 +216,8 @@ public class SearchRunner {
 			double idf = ((double)mAllDocs.size())/((double) docsForTerm.size());
 			idf = Math.log10(idf);
 			for (DocumentEntry documentEntry : docsForTerm) {
+				if(!docList.contains(documentEntry.mFileID))
+					continue;	//need to apply only on final list
 				int tf = documentEntry.mFrequencyInFile;
 				double tfw = 1 + Math.log10(tf);
 				double tfidf = tfw * idf;
@@ -220,7 +231,7 @@ public class SearchRunner {
 				docRelevanceToUpdate.mRelavance += tfidf;
 			}
 		}
-		
+
 		for (DocumentRelevance documentRelevance : docRelevanceTable.values()) {
 			//documentRelevance.mRelavance = documentRelevance.mRelavance/(getDocumentNormalizationTerm(documentRelevance.mDocID) * Math.sqrt(parsedQuery.mLeafNodes.size()) );
 			double normalizationTerm = getDocumentNormalizationTerm(documentRelevance.mDocID);
@@ -242,8 +253,8 @@ public class SearchRunner {
 		return Math.sqrt(normalizationTerm);
 	}
 
-	private List<String> invertDocs(List<DocumentEntry> outDocumentList) {
-		List<String> outlist = new ArrayList<String>();
+	private Set<String> invertDocs(List<DocumentEntry> outDocumentList) {
+		Set<String> outlist = new HashSet<String>();
 		for (DocumentEntry documentEntry : outDocumentList) {
 			if(!mAllDocs.containsKey(documentEntry.mFileID)) {
 				outlist.add(documentEntry.mFileID);
@@ -274,7 +285,7 @@ public class SearchRunner {
 		if(node.mLeftChild == null || node.mRightChild == null) {
 			throw new QueryParserException("One of the children can't be null, either both are null or none");
 		}
-		
+
 		//To avoid evaluating NOT into a huge list of documents, I'm using a few set theory shortcuts to keep the list as small as possible till the 
 		//evaluation reaches root, at only at root not will be applied and we get a huge list.
 		//Here are the set theory rules (S represents universal set of all documents)
@@ -327,7 +338,7 @@ public class SearchRunner {
 			}
 		}
 	}
-	
+
 	IndexEntry getIndexForString(String searchString, IndexType type) {
 		switch (type) {
 		case TERM:
@@ -343,7 +354,7 @@ public class SearchRunner {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Checks for positional adjecency for quoted string
 	 * @param outDocumentList
@@ -351,7 +362,7 @@ public class SearchRunner {
 	 * @return
 	 * @throws QueryParserException
 	 */
-	
+
 	boolean CheckForQuotedString(List<DocumentEntry> outDocumentList, TreeNode node) throws QueryParserException{ 
 		List<String> terms = new ArrayList<String>(Arrays.asList( node.mSearchString.split(" ")));
 		List<IndexEntry> indexEntries = new ArrayList<IndexEntry>(terms.size());
@@ -372,7 +383,7 @@ public class SearchRunner {
 		for (DocumentEntry docEntry : tempList) {
 			docIDsWithAllTerms.add(docEntry.mFileID);
 		}
-		
+
 		//Now we need to filter and get the list of doc entries which contain all terms. Need to do this for each term thus a loop
 		List<List<DocumentEntry>> lstAllTermsPresentDocs = new ArrayList<List<DocumentEntry>>(terms.size());
 		for (IndexEntry indexEntry : indexEntries) {
@@ -384,7 +395,7 @@ public class SearchRunner {
 			}
 			lstAllTermsPresentDocs.add(lst);
 		}
-		
+
 		//now we have the lists 
 		//verify that they are in position
 		for(int i=0; i<lstAllTermsPresentDocs.get(0).size(); i++ ) {
@@ -400,7 +411,7 @@ public class SearchRunner {
 						break;
 					}
 				}
-				
+
 				if(bPositionsAreCorrect) {
 					//All the positions are correct all this document
 					if(copyDocEntry == null) {
@@ -416,14 +427,14 @@ public class SearchRunner {
 		node.mDocsForTerm.addAll(outDocumentList);
 		return node.mIsNot;
 	}
-	
+
 	List<DocumentEntry> intersect(List<DocumentEntry> left, List<DocumentEntry> right) {
 		List<DocumentEntry> returnList = new ArrayList<DocumentEntry>();
 		HashSet<String> hashSet = new HashSet<String>();
 		for (DocumentEntry doc : left) {
 			hashSet.add(doc.mFileID);
 		}
-		
+
 		for (DocumentEntry rightDoc : right) {
 			if(hashSet.contains(rightDoc.mFileID)) {
 				returnList.add(rightDoc);
@@ -431,7 +442,7 @@ public class SearchRunner {
 		}
 		return returnList;
 	}
-	
+
 	List<DocumentEntry> union(List<DocumentEntry> left, List<DocumentEntry> right) {
 		HashSet<String> hashSet = new HashSet<String>();
 		List<DocumentEntry> returnList = new ArrayList<DocumentEntry>();
@@ -439,7 +450,7 @@ public class SearchRunner {
 			hashSet.add(doc.mFileID);
 			returnList.add(doc);
 		}
-		
+
 		for (DocumentEntry doc : right) {
 			if(!hashSet.contains(doc.mFileID)) {
 				returnList.add(doc);
@@ -447,7 +458,7 @@ public class SearchRunner {
 		}
 		return returnList;
 	}
-	
+
 	/**
 	 * 
 	 * @param left
@@ -459,32 +470,97 @@ public class SearchRunner {
 		for (DocumentEntry doc : left) {
 			hashMap.put(doc.mFileID, doc);
 		}
-		
+
 		for (DocumentEntry rightDoc : right) {
 			if(hashMap.containsKey(rightDoc.mFileID)) {
 				hashMap.remove(rightDoc.mFileID);
 			}
 		}
 		List<DocumentEntry> returnList = new ArrayList<DocumentEntry>(hashMap.values());
-		
+
 		return returnList;
 	}
-	
+
 	/**
 	 * Method to execute queries in E mode
 	 * @param queryFile : The file from which queries are to be read and executed
 	 */
 	public void query(File queryFile) {
-		//TODO: IMPLEMENT THIS METHOD
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(queryFile));
+			String line = br.readLine();
+			if(line == null) {
+				br.close();
+				throw new Exception();
+			}
+			String[] parts = line.split("=");
+			int numberOfQueries = Integer.parseInt(parts[1]);
+			String query = null;
+			String queryID = null;
+			List<String> outputs = new ArrayList<String>();
+			for (int i=0; i < numberOfQueries; i++) {
+				line = br.readLine();
+				query = getQuery(line);
+				queryID = getQueryName(line);
+				Query parsedQuery = QueryParser.parse(query, "AND");
+				List<DocumentEntry> outDocumentList = new ArrayList<DocumentEntry>();
+				boolean isRootNot = ApplyInorderTraversal(outDocumentList , parsedQuery.mRootNode);
+				Set<String> docSet = null;
+				if(isRootNot) {
+					docSet = invertDocs(outDocumentList);
+				}
+				else {
+					docSet = new HashSet<String>();
+					for (DocumentEntry doc : outDocumentList) {
+						docSet.add(doc.mFileID);
+					}
+				}
+
+				List<DocumentRelevance> relevantDocs = getRelevantDocs(parsedQuery, docSet, ScoringModel.OKAPI);
+				String results = StreamRelevanceScores(relevantDocs);
+				results = queryID + ":" + results;
+				outputs.add(results);
+			}
+			mOutStream.println("numResults=" + String.valueOf(outputs.size()));
+			for (String str: outputs) {
+				mOutStream.println(str);
+			}
+			br.close();
+			
+		} catch (Exception ex) {
+			mOutStream.println("File doesn't exist or doesn't have as many lines as advertized");
+		}
 	}
 	
+	private String StreamRelevanceScores(List<DocumentRelevance> relevantDocs) {
+		String out = "";
+		for (DocumentRelevance documentRelevance : relevantDocs) {
+			double relevance = ((double)Math.round(documentRelevance.mRelavance * 100000))/100000 ;
+			out = out+ documentRelevance.mDocID + "#" + relevance + ", ";
+		}
+		if(!out.isEmpty()) {
+			out = out.substring(0, out.length() - 1);
+		}
+		return "{" + out + "}";
+	}
+
+	private String getQuery(String line) {
+		int firstColon = line.indexOf(":");
+		return line.substring(firstColon);
+	}
+	
+	private String getQueryName(String line) {
+		int firstColon = line.indexOf(":");
+		return line.substring(0, firstColon);
+	}
+
 	/**
 	 * General cleanup method
 	 */
 	public void close() {
-		//TODO : IMPLEMENT THIS METHOD
+		mOutStream.close();
 	}
-	
+
 	/**
 	 * Method to indicate if wildcard queries are supported
 	 * @return true if supported, false otherwise
@@ -493,7 +569,7 @@ public class SearchRunner {
 		//TODO: CHANGE THIS TO TRUE ONLY IF WILDCARD BONUS ATTEMPTED
 		return false;
 	}
-	
+
 	/**
 	 * Method to get substituted query terms for a given term with wildcards
 	 * @return A Map containing the original query term as key and list of
@@ -502,9 +578,9 @@ public class SearchRunner {
 	public Map<String, List<String>> getQueryTerms() {
 		//TODO:IMPLEMENT THIS METHOD IFF WILDCARD BONUS ATTEMPTED
 		return null;
-		
+
 	}
-	
+
 	/**
 	 * Method to indicate if speel correct queries are supported
 	 * @return true if supported, false otherwise
@@ -513,7 +589,7 @@ public class SearchRunner {
 		//TODO: CHANGE THIS TO TRUE ONLY IF SPELLCHECK BONUS ATTEMPTED
 		return false;
 	}
-	
+
 	/**
 	 * Method to get ordered "full query" substitutions for a given misspelt query
 	 * @return : Ordered list of full corrections (null if none present) for the given query

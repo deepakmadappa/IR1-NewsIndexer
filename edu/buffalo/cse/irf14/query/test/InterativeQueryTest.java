@@ -22,7 +22,7 @@ public class InterativeQueryTest {
 		while(true) {
 			System.out.println("Please Enter Query");
 			String userQuery = in.nextLine();
-			mSearchRunner.query(userQuery, ScoringModel.OKAPI);
+			mSearchRunner.query(userQuery, ScoringModel.TFIDF);
 		}
 	}
 
