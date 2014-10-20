@@ -23,15 +23,6 @@ public class QueryParser {
 	private enum ChildType {
 		LEFT,RIGHT
 	}
-	
-	public static void main(String[] args) {
-		try {
-			QueryParser.parse("Paris", "OR");
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * MEthod to parse the given user query into a Query object
@@ -148,7 +139,7 @@ public class QueryParser {
 
 		String firstKey = (String) trackNodeMap.keySet().toArray()[0];
 		qObject.mRootNode = trackNodeMap.get(firstKey);
-		System.out.println("String : "+qObject.toString());//for testing
+//		System.out.println("String : "+qObject.toString());//for testing
 		String queryparsertext = qObject.toString();
 
 		qObject.populateLeaves();
