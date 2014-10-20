@@ -78,6 +78,11 @@ public class AnalyzerChain implements Analyzer {
 		}
 		inter = symFilter.getStream();
 		
+		TokenFilter capFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.CAPITALIZATION, inter);
+		while(capFilter.increment()) {
+		}
+		inter = capFilter.getStream();
+		
 		TokenFilter spclFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SPECIALCHARS, inter);
 		while(spclFilter.increment()) {
 		}
@@ -90,7 +95,14 @@ public class AnalyzerChain implements Analyzer {
 		while(symFilter.increment()) {
 			
 		}
-		return symFilter.getStream();
+		TokenStream inter = symFilter.getStream();
+		
+		TokenFilter capFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.CAPITALIZATION, inter);
+		while(capFilter.increment()) {
+		}
+		
+		return capFilter.getStream();
+		
 
 	}
 	
@@ -155,6 +167,11 @@ public class AnalyzerChain implements Analyzer {
 		while(spclFilter.increment()) {
 		}
 		inter = spclFilter.getStream();
+		
+		TokenFilter capFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.CAPITALIZATION, inter);
+		while(capFilter.increment()) {
+		}
+		inter = capFilter.getStream();
 		
 		TokenFilter symFilter = TokenFilterFactory.getInstance().getFilterByType(TokenFilterType.SYMBOL, inter);
 		while(symFilter.increment()) {

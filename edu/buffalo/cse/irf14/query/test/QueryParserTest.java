@@ -11,7 +11,7 @@ public class QueryParserTest {
 	@Test
 	public final void testQuery() {
 		String input[] = {"hello","hello world","\"hello world\"","orange AND yellow","(black OR blue) AND bruises","Author:Cat AND Mat"};
-		String output[] = {"{Term:hello}","{Term:hello OR Term:world}","{Term:\"hello world\"}","{Term:orange AND Term:yellow}","{[Term:black OR Term:blue] AND Term:bruises}","{Author:Cat AND Term:Mat}"};
+		String output[] = {"{Term:hello}","{Term:hello OR Term:world}","{Term:hello world}","{Term:orang AND Term:yellow}","{[Term:black OR Term:blue] AND Term:bruis}","{Author:cat AND Term:mat}"};
 		Query query = null;
 		try {
 

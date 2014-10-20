@@ -4,6 +4,14 @@ package edu.buffalo.cse.irf14.query;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
+
+import edu.buffalo.cse.irf14.analysis.Analyzer;
+import edu.buffalo.cse.irf14.analysis.AnalyzerFactory;
+import edu.buffalo.cse.irf14.analysis.Token;
+import edu.buffalo.cse.irf14.analysis.TokenStream;
+import edu.buffalo.cse.irf14.analysis.Tokenizer;
+import edu.buffalo.cse.irf14.analysis.TokenizerException;
+import edu.buffalo.cse.irf14.document.FieldNames;
 import edu.buffalo.cse.irf14.index.IndexType;
 
 /**
@@ -15,15 +23,15 @@ public class QueryParser {
 	private enum ChildType {
 		LEFT,RIGHT
 	}
-	/*
-	public static void main(String[] args) {
-		try {
-			QueryParser.parse("Category:War OR Author:(Dutt AND Rushdie) OR Category:(Place AND Mat)", "OR");
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		}
-	}*/
+	
+//	public static void main(String[] args) {
+//		try {
+//			QueryParser.parse("Cat AND Ba#nk OR tapioca", "OR");
+//		} catch (Exception e) {
+//			// TODO: handle exception
+//			e.printStackTrace();
+//		}
+//	}
 
 	/**
 	 * MEthod to parse the given user query into a Query object
@@ -49,6 +57,9 @@ public class QueryParser {
 		Pattern queryPattern = Pattern.compile("\\([^\\(^\\)]*\\)");// to get the inner parenthesis group
 		Pattern spacePattern = Pattern.compile("\\s+(?=([^\"]*\"[^\"]*\")*[^\"]*$)");// to replace all whitespaces except within quoted text
 		int i=1;
+		TokenStream tStream = null;
+		TokenStream qStream = null;
+		Tokenizer mTokenizer = new Tokenizer();
 		Matcher queryMatcher = queryPattern.matcher(uString); // to check for string within innermost parenthesis
 		while (queryMatcher.find()) {
 
@@ -89,15 +100,35 @@ public class QueryParser {
 						!(regExMatch[0].substring(0, 3).equalsIgnoreCase("exp_"))) {
 					if(regExMatch[0].contains("\""))
 						currentNode.mIsSingleQuotedString = true;
-					if (currentNode.mSearchString == null) 
-						currentNode.mSearchString = regExMatch[0];
+					if (currentNode.mSearchString == null) {
+						
+						try {
+								tStream = mTokenizer.consume(regExMatch[0]);
+								Analyzer contentAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CONTENT, tStream);
+								while(contentAnalyzer.increment()) {}
+								qStream = contentAnalyzer.getStream();
+								currentNode.mSearchString = qStream.toString().trim();
+							} catch (TokenizerException e) {
+
+							}
+						}
 					//					currentNode.mSearchString=regExMatch[0];
 
 				} else if(regExMatch[0].length() <= 4 ) {
 					if(regExMatch[0].contains("\""))
 						currentNode.mIsSingleQuotedString = true;
-					if (currentNode.mSearchString == null) 
-						currentNode.mSearchString=regExMatch[0];
+					if (currentNode.mSearchString == null) {
+						try {
+							tStream = mTokenizer.consume(regExMatch[0]);
+							Analyzer contentAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CONTENT, tStream);
+							while(contentAnalyzer.increment()) {}
+							qStream = contentAnalyzer.getStream();
+							currentNode.mSearchString = qStream.toString().trim();
+						} catch (TokenizerException e) {
+
+						}
+					}
+						
 				}
 			}// end length == 1		
 
@@ -116,7 +147,7 @@ public class QueryParser {
 
 		String firstKey = (String) trackNodeMap.keySet().toArray()[0];
 		qObject.mRootNode = trackNodeMap.get(firstKey);
-		//System.out.println("String : "+qObject.toString());//for testing
+//		System.out.println("String : "+qObject.toString());//for testing
 		String queryparsertext = qObject.toString();
 
 		qObject.populateLeaves();
@@ -128,22 +159,67 @@ public class QueryParser {
 			return null;
 		}else
 			return qObject;
+		
 
 	}// end of parse method
 
 	public static void setIndexType(String nodeString, TreeNode currentNode) {
 
 		String partNode[] = nodeString.split(":");
-		currentNode.mSearchString = partNode[1];
-		if (partNode[0].equalsIgnoreCase("Author")){
+		TokenStream tStream = null;
+		TokenStream qStream = null;
+		Tokenizer mTokenizer = new Tokenizer();
+//		currentNode.mSearchString = partNode[1];
+		if (partNode[0].equalsIgnoreCase("Author")) {
+			
+			try {
+				tStream = mTokenizer.consume(partNode[1]);
+				Analyzer contentAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.AUTHOR, tStream);
+				while(contentAnalyzer.increment()) {}
+				qStream = contentAnalyzer.getStream();
+				currentNode.mSearchString = qStream.toString().trim();
+			} catch (TokenizerException e) {
+
+			}
 			currentNode.mIndexType = IndexType.AUTHOR;
+			
 		} else if (partNode[0].equalsIgnoreCase("Category")) {
+			
+			try {
+				tStream = mTokenizer.consume(partNode[1]);
+				Analyzer contentAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CATEGORY, tStream);
+				while(contentAnalyzer.increment()) {}
+				qStream = contentAnalyzer.getStream();
+				currentNode.mSearchString = qStream.toString().trim();
+			} catch (TokenizerException e) {
+
+			}		
 			currentNode.mIndexType = IndexType.CATEGORY;
 		}else if (partNode[0].equalsIgnoreCase("Place")) {
+			
+			try {
+				tStream = mTokenizer.consume(partNode[1]);
+				Analyzer contentAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.PLACE, tStream);
+				while(contentAnalyzer.increment()) {}
+				qStream = contentAnalyzer.getStream();
+				currentNode.mSearchString = qStream.toString().trim();
+			} catch (TokenizerException e) {
+
+			}
 			currentNode.mIndexType = IndexType.PLACE;
 		}else {
-			currentNode.mIndexType = IndexType.TERM;
-		}
+			
+				try {
+					tStream = mTokenizer.consume(partNode[1]);
+					Analyzer contentAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CONTENT, tStream);
+					while(contentAnalyzer.increment()) {}
+					qStream = contentAnalyzer.getStream();
+					currentNode.mSearchString = qStream.toString().trim();
+				} catch (TokenizerException e) {
+	
+				}
+				currentNode.mIndexType = IndexType.TERM;
+			}
 
 	}
 
@@ -151,6 +227,9 @@ public class QueryParser {
 			TreeNode currentNode, HashMap<String, TreeNode> trackNodeMap) {
 
 		IndexType tempIT = IndexType.TERM;
+		TokenStream tStream = null;
+		TokenStream qStream = null;
+		Tokenizer mTokenizer = new Tokenizer();
 		boolean colonIndicator = false;
 		TreeNode child = new TreeNode();
 		if(nodeString.contains(":")) {
@@ -172,8 +251,18 @@ public class QueryParser {
 		}else {
 			if(nodeString.contains("\""))
 				child.mIsSingleQuotedString = true;
-			if (colonIndicator == false) 
-				child.mSearchString = nodeString;
+			if (colonIndicator == false) {
+
+				try {
+					tStream = mTokenizer.consume(nodeString);
+					Analyzer contentAnalyzer = AnalyzerFactory.getInstance().getAnalyzerForField( FieldNames.CONTENT, tStream);
+					while(contentAnalyzer.increment()) {}
+					qStream = contentAnalyzer.getStream();
+					child.mSearchString = qStream.toString().trim();
+				} catch (TokenizerException e) {
+	
+				}
+			}
 
 		}
 		if(type == ChildType.LEFT) {
