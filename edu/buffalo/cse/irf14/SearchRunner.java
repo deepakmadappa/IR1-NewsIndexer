@@ -6,9 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -20,8 +17,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import edu.buffalo.cse.irf14.document.Document;
-import edu.buffalo.cse.irf14.document.ParserException;
 import edu.buffalo.cse.irf14.index.DocumentEntry;
 import edu.buffalo.cse.irf14.index.DocumentObject;
 import edu.buffalo.cse.irf14.index.IndexEntry;
@@ -364,7 +359,9 @@ public class SearchRunner {
 	 */
 
 	boolean CheckForQuotedString(List<DocumentEntry> outDocumentList, TreeNode node) throws QueryParserException{ 
-		List<String> terms = new ArrayList<String>(Arrays.asList( node.mSearchString.split(" ")));
+		String searchString = node.mSearchString.trim();
+		searchString = searchString.substring(1, searchString.length() -1);
+		List<String> terms = new ArrayList<String>(Arrays.asList( searchString.split(" ")));
 		List<IndexEntry> indexEntries = new ArrayList<IndexEntry>(terms.size());
 		//Get index for each term
 		for (String term : terms) {
@@ -526,12 +523,12 @@ public class SearchRunner {
 				mOutStream.println(str);
 			}
 			br.close();
-			
+
 		} catch (Exception ex) {
 			mOutStream.println("File doesn't exist or doesn't have as many lines as advertized");
 		}
 	}
-	
+
 	private String StreamRelevanceScores(List<DocumentRelevance> relevantDocs) {
 		String out = "";
 		for (DocumentRelevance documentRelevance : relevantDocs) {
@@ -545,11 +542,13 @@ public class SearchRunner {
 	}
 
 	private String getQuery(String line) {
+		line = line.trim();
 		int firstColon = line.indexOf(":");
-		return line.substring(firstColon);
+		return line.substring(firstColon + 2, line.length() -1);
 	}
-	
+
 	private String getQueryName(String line) {
+		line = line.trim();
 		int firstColon = line.indexOf(":");
 		return line.substring(0, firstColon);
 	}
