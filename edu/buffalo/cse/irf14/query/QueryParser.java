@@ -234,6 +234,9 @@ public class QueryParser {
 		Tokenizer mTokenizer = new Tokenizer();
 		boolean colonIndicator = false;
 		TreeNode child = new TreeNode();
+		if ((type==ChildType.RIGHT) && (currentNode.mIsNot)) {
+			child.mIsNot = true;
+		}
 		if(nodeString.contains(":")) {
 			setIndexType(nodeString,child);
 			colonIndicator = true;

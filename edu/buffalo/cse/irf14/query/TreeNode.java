@@ -13,7 +13,6 @@ public class TreeNode {
 	public LogicalOperator mOperator;
 	public IndexType mIndexType;
 	public String mSearchString;
-	public String mOriginalString;
 	public boolean mIsNot;
 	public boolean mIsSingleQuotedString;
 	public List<DocumentEntry> mDocsForTerm = null;
