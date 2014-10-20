@@ -12,7 +12,7 @@ public class QueryParserTest {
 	public final void testQuery() {
 		Query query = null;
 		try {
-			query = QueryParser.parse("hello world", "AND");
+			query = QueryParser.parse("adob", "AND");
 		}
 		catch (Exception ex) {
 			

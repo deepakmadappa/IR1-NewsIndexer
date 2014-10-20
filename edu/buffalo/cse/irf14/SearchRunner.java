@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 
 import edu.buffalo.cse.irf14.document.Document;
 import edu.buffalo.cse.irf14.index.DocumentEntry;
+import edu.buffalo.cse.irf14.index.DocumentObject;
 import edu.buffalo.cse.irf14.index.IndexEntry;
 import edu.buffalo.cse.irf14.index.IndexReader;
 import edu.buffalo.cse.irf14.index.IndexType;
@@ -38,11 +39,14 @@ public class SearchRunner {
 	private String mCorpusDir = null;
 	private char mMode;
 	private PrintStream mOutStream = null;
-	HashMap<String, HashMap<String, TFDFSet>> mAllDocs = null;
+	HashMap<String, DocumentObject> mAllDocs = null;
 	private HashMap<String, IndexEntry> mTermIndex = null;
 	private HashMap<String, IndexEntry> mPlaceIndex = null;
 	private HashMap<String, IndexEntry> mAuthorIndex = null;
 	private HashMap<String, IndexEntry> mCategoryIndex = null;
+	private double mAverageLength = 0;
+	private double B = 0.75f;
+	private double K1 = 1.3f;
 	/**
 	 * Default (and only public) constuctor
 	 * @param indexDir : The directory where the index resides
@@ -63,7 +67,14 @@ public class SearchRunner {
 		try {
 			FileInputStream fin = new FileInputStream(indexDir + File.separator + "docs.list");
 			ObjectInputStream ois = new ObjectInputStream(fin);
-			mAllDocs = (HashMap<String, HashMap<String, TFDFSet>>)(ois.readObject());
+			mAllDocs = (HashMap<String, DocumentObject>)(ois.readObject());
+			long len = 0;
+			int count = 0;
+			for (DocumentObject docObj : mAllDocs.values()) {
+				len += docObj.mDocument.mDocumentLenght;
+				count++;
+			}
+			mAverageLength = len/count;
 		}catch(Exception ex) {
 			System.out.println("error occured while reading from file");
 		}
@@ -78,6 +89,7 @@ public class SearchRunner {
 	public void query(String userQuery, ScoringModel model) {
 		Query parsedQuery = null;
 		try {
+			long startTime = System.currentTimeMillis();
 			parsedQuery = QueryParser.parse(userQuery, "AND");
 			List<DocumentEntry> outDocumentList = new ArrayList<DocumentEntry>();
 			boolean isRootNot = ApplyInorderTraversal(outDocumentList , parsedQuery.mRootNode);
@@ -94,6 +106,24 @@ public class SearchRunner {
 			
 			List<DocumentRelevance> relevantDocs = getRelevantDocs(parsedQuery, docList, model);
 			
+			long endTime = System.currentTimeMillis();
+			String totalTime = String.valueOf(endTime-startTime);
+			mOutStream.println("Query:" + userQuery);
+			mOutStream.println("Time Taken:" + totalTime);
+			
+			
+			//we got the docs now write them to printStream
+			int count = 0;
+			for (DocumentRelevance documentRelevance : relevantDocs) {
+				count++;
+				double relevance = ((double)Math.round(documentRelevance.mRelavance * 100000))/100000 ;
+				mOutStream.println("Rank:" + String.valueOf(count) + ", Document:" + documentRelevance.mDocID + ", Relavance:" + String.valueOf(relevance));
+				String snippet = getSnippetForDoc(documentRelevance.mDocID, mCorpusDir, parsedQuery.mLeafNodes);
+				mOutStream.println(snippet);
+				if(count == 10)
+					break; //only top 10
+			}
+			
 		} catch (Exception ex) {
 			
 		}
@@ -102,11 +132,19 @@ public class SearchRunner {
 		}
 	}
 	
+	private String getSnippetForDoc(String mDocID, String mCorpusDir2,
+			List<TreeNode> mLeafNodes) {
+		// TODO Auto-generated method stub
+		return "";
+	}
+
 	public List<DocumentRelevance> getRelevantDocs(Query parsedQuery,
 			List<String> docList, ScoringModel model) {
 		List<DocumentRelevance> unSortedList = null;
 		if(model == ScoringModel.TFIDF) {
 			unSortedList = getTFIDFRelevance(parsedQuery, docList, model);
+		} else if (model == ScoringModel.OKAPI) {
+			unSortedList = getOkapiRelevance(parsedQuery, docList, model);
 		}
 		unSortedList.sort(new Comparator<DocumentRelevance>() {
 			public int compare(DocumentRelevance o1, DocumentRelevance o2) {
@@ -123,6 +161,37 @@ public class SearchRunner {
 			documentRelevance.mRelavance = documentRelevance.mRelavance/ maxRelavance;
 		}*/
 		return unSortedList;
+	}
+
+	private List<DocumentRelevance> getOkapiRelevance(Query parsedQuery,
+			List<String> docList, ScoringModel model) {
+		
+		Hashtable<String, DocumentRelevance> docRelevanceTable = new Hashtable<String, DocumentRelevance>();
+		for (TreeNode node : parsedQuery.mLeafNodes) {
+			if(node.mIsNot) {
+				continue;	//ignore not nodes
+			}
+			List<DocumentEntry> docsForTerm = node.mDocsForTerm;
+			double idf = ((double)mAllDocs.size())/((double) docsForTerm.size());
+			idf = Math.log10(idf);
+			for (DocumentEntry documentEntry : docsForTerm) {
+				int tf = documentEntry.mFrequencyInFile;
+				double tfw = 1 + Math.log10(tf);
+				DocumentRelevance docRelevanceToUpdate = null;
+				DocumentObject docObj = mAllDocs.get(documentEntry.mFileID);
+				double denom = (1-B) + B * (docObj.mDocument.mDocumentLenght / mAverageLength);
+				double rsvd = idf * (((K1+1)*tfw)/(K1 * denom + tfw));
+				if(docRelevanceTable.containsKey(documentEntry.mFileID)) {
+					docRelevanceToUpdate = docRelevanceTable.get(documentEntry.mFileID);
+				} else {
+					docRelevanceToUpdate = new DocumentRelevance(documentEntry.mFileID);
+					docRelevanceTable.put(documentEntry.mFileID, docRelevanceToUpdate);
+				}
+				docRelevanceToUpdate.mRelavance += rsvd;
+			}
+		}
+		List<DocumentRelevance> outList = new ArrayList<DocumentRelevance>(docRelevanceTable.values());	
+		return outList;
 	}
 
 	private List<DocumentRelevance> getTFIDFRelevance(Query parsedQuery,
@@ -162,7 +231,7 @@ public class SearchRunner {
 	}
 
 	private double getDocumentNormalizationTerm(String docID) {
-		HashMap<String, TFDFSet> document = mAllDocs.get(docID);
+		HashMap<String, TFDFSet> document = mAllDocs.get(docID).mTFDFMap;
 		int N = mAllDocs.size();
 		double normalizationTerm = 0;
 		for (Entry<String, TFDFSet> term : document.entrySet()) {

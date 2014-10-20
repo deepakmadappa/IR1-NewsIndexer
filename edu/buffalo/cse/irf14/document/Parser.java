@@ -30,7 +30,6 @@ public class Parser {
 			throw new ParserException("File name is null");
 		}
 		try {
-			
 			getFileIDAndCategory(retDocument, filename.replace(File.separatorChar, '|'));
 			Path path = Paths.get(filename);
 			File file = new File(filename);
@@ -38,6 +37,9 @@ public class Parser {
 				throw new ParserException("file does not exist");
 			}
 			List<String> lines = Files.readAllLines(path);
+			for (String string : lines) {
+				retDocument.mDocumentLenght += string.length();
+			}
 			getTitleAuthorAndContent(retDocument, lines);
 		}
 		catch(ParserException pEx){

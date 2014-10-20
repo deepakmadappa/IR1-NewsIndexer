@@ -15,8 +15,7 @@ import edu.buffalo.cse.irf14.index.DocumentEntry;
 public class Document implements Serializable{
 	//Sample implementation - you can change this if you like
 	private HashMap<FieldNames, String[]> map;
-	public HashMap<String, DocumentEntry> mTermDocEntryMap;
-	public double mNormalizationValue;
+	public int mDocumentLenght;
 	
 	/**
 	 * Default constructor
@@ -24,8 +23,7 @@ public class Document implements Serializable{
 	public Document() {
 		//TBD filling in the initial capacity may make it more efficient
 		map = new HashMap<FieldNames, String[]>();
-		mTermDocEntryMap = new HashMap<String, DocumentEntry>();
-		mNormalizationValue = 0;
+		mDocumentLenght = 0;
 	}
 	
 	/**

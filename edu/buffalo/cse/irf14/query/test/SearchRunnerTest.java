@@ -1,6 +1,5 @@
 package edu.buffalo.cse.irf14.query.test;
 
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,13 +8,10 @@ import org.junit.BeforeClass;
 import edu.buffalo.cse.irf14.index.DocumentEntry;
 import edu.buffalo.cse.irf14.SearchRunner;
 import edu.buffalo.cse.irf14.SearchRunner.ScoringModel;
-import edu.buffalo.cse.irf14.query.LogicalOperator;
 import edu.buffalo.cse.irf14.query.Query;
 import edu.buffalo.cse.irf14.query.TreeNode;
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 

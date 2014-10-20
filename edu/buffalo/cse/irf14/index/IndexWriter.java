@@ -39,6 +39,7 @@ public class IndexWriter {
 	HashSet<String> mPlaceFileIDSet;
 	HashMap<String, Document> mAllDocs;
 	private Tokenizer mTokenizer;
+	private long mTotalLength;
 	/**
 	 * Default constructor
 	 * @param indexDir : The root directory to be sued for indexing
@@ -71,6 +72,9 @@ public class IndexWriter {
 		TokenStream stream = null;
 		TokenStream indexableStream = null;
 		try {
+			if(mAllDocs.containsKey(d.getField(FieldNames.FILEID)[0]))
+				return;// this file already exists under different just ignore it
+			mTotalLength = d.mDocumentLenght;
 			mAllDocs.put(d.getField(FieldNames.FILEID)[0], d);
 			String[] author = d.getField(FieldNames.AUTHOR);
 			if(author != null) {
@@ -185,7 +189,6 @@ public class IndexWriter {
 			if(documentList.isEmpty() || !documentList.getFirst().mFileID.equalsIgnoreCase(fileID)) {
 				DocumentEntry docEntry =  new DocumentEntry(fileID);
 				indexEntry.mDocumentList.addFirst(docEntry);
-				doc.mTermDocEntryMap.put(tok.toString(), docEntry);
 				indexEntry.mDocumentFrequency++;
 				fileIDSet.add(fileID);
 			}
@@ -272,8 +275,8 @@ public class IndexWriter {
 		}
 	}
 
-	public HashMap<String, HashMap<String, TFDFSet>> constructDocumentToTermIndex() {
-		HashMap<String, HashMap<String, TFDFSet>> documentMap = new HashMap<String, HashMap<String, TFDFSet>>();
+	public HashMap<String, DocumentObject> constructDocumentToTermIndex() {
+		HashMap<String, DocumentObject> documentMap = new HashMap<String, DocumentObject>();
 
 		List<HashMap<String, IndexEntry>> indexesList = new ArrayList<HashMap<String,IndexEntry>>(4);
 		indexesList.add(mAuthorIndex);
@@ -291,10 +294,12 @@ public class IndexWriter {
 						TFDFSet set = new TFDFSet();
 						set.mTF = docEntry.mFrequencyInFile;
 						set.mDF = indexEntry.mDocumentFrequency;
-						documentMap.put(docEntry.mFileID, termTFDFMap);
+						DocumentObject docObj = new DocumentObject(mAllDocs.get(docEntry.mFileID));
+						docObj.mTFDFMap = termTFDFMap;
+						documentMap.put(docEntry.mFileID, docObj);
 						termTFDFMap.put(term, set);
 					} else {
-						termTFDFMap = documentMap.get(docEntry.mFileID);
+						termTFDFMap = documentMap.get(docEntry.mFileID).mTFDFMap;
 						TFDFSet set = null;
 						if(termTFDFMap.containsKey(term)) {
 							set = termTFDFMap.get(term);
