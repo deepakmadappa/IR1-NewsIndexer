@@ -139,13 +139,10 @@ public class QueryParser {
 
 		String firstKey = (String) trackNodeMap.keySet().toArray()[0];
 		qObject.mRootNode = trackNodeMap.get(firstKey);
-//		System.out.println("String : "+qObject.toString());//for testing
 		String queryparsertext = qObject.toString();
 
 		qObject.populateLeaves();
-		for (int j = 0; j < qObject.mLeafNodes.size(); j++) {
-			System.out.println(qObject.mLeafNodes.get(j));
-		}
+		
 
 		if(queryparsertext == null || queryparsertext.isEmpty()) {
 			return null;

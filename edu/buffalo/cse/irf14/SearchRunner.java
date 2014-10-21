@@ -16,7 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import edu.buffalo.cse.irf14.document.Document;
+import edu.buffalo.cse.irf14.document.FieldNames;
 import edu.buffalo.cse.irf14.index.DocumentEntry;
 import edu.buffalo.cse.irf14.index.DocumentObject;
 import edu.buffalo.cse.irf14.index.IndexEntry;
@@ -28,6 +32,7 @@ import edu.buffalo.cse.irf14.query.Query;
 import edu.buffalo.cse.irf14.query.QueryParser;
 import edu.buffalo.cse.irf14.query.QueryParserException;
 import edu.buffalo.cse.irf14.query.TreeNode;
+import edu.buffalo.cse.irf14.query.test.FileQueryTest;
 
 /**
  * Main class to run the searcher.
@@ -92,7 +97,7 @@ public class SearchRunner {
 		Query parsedQuery = null;
 		try {
 			long startTime = System.currentTimeMillis();
-			parsedQuery = QueryParser.parse(userQuery, "AND");
+			parsedQuery = QueryParser.parse(userQuery, "OR");
 			List<DocumentEntry> outDocumentList = new ArrayList<DocumentEntry>();
 			boolean isRootNot = ApplyInorderTraversal(outDocumentList , parsedQuery.mRootNode);
 			Set<String> docSet = null;
@@ -111,7 +116,7 @@ public class SearchRunner {
 			long endTime = System.currentTimeMillis();
 			String totalTime = String.valueOf(endTime-startTime);
 			mOutStream.println("Query:" + userQuery);
-			mOutStream.println("Time Taken:" + totalTime);
+			mOutStream.println("Query Time:" + totalTime);
 
 
 			//we got the docs now write them to printStream
@@ -119,8 +124,8 @@ public class SearchRunner {
 			for (DocumentRelevance documentRelevance : relevantDocs) {
 				count++;
 				double relevance = ((double)Math.round(documentRelevance.mRelavance * 100000))/100000 ;
-				mOutStream.println("Rank:" + String.valueOf(count) + ", Document:" + documentRelevance.mDocID + ", Relavance:" + String.valueOf(relevance));
-				String snippet = getSnippetForDoc(documentRelevance.mDocID, mCorpusDir, parsedQuery.mLeafNodes);
+				mOutStream.println("Result Rank:" + String.valueOf(count) + ", Document:" + documentRelevance.mDocID + ", Result Relavancy:" + String.valueOf(relevance));
+				String snippet = getSnippetForDoc(documentRelevance.mDocID, parsedQuery.mLeafNodes);
 				mOutStream.println(snippet);
 				if(count == 10)
 					break; //only top 10
@@ -134,10 +139,37 @@ public class SearchRunner {
 		}
 	}
 
-	private String getSnippetForDoc(String mDocID, String mCorpusDir2,
+	private String getSnippetForDoc(String mDocID, 
 			List<TreeNode> mLeafNodes) {
-		// TODO Auto-generated method stub
-		return "";
+		String retString = "";
+		try {
+			Document doc = mAllDocs.get(mDocID).mDocument;
+			retString = "<b>" + doc.getField(FieldNames.TITLE)[0] + "</b>";
+			String fileName = mCorpusDir + File.separatorChar + mDocID;
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			String line; 
+			List<String> lines = new ArrayList<String>();
+			while( (line = br.readLine()) != null && lines.size() < 3) {
+				boolean bUseThisLine = false;
+				for (TreeNode treeNode : mLeafNodes) {
+
+					Pattern pat = Pattern.compile(treeNode.mSearchString, Pattern.CASE_INSENSITIVE);
+					Matcher mat = pat.matcher(line);
+					if(mat.find()) {
+						line = mat.replaceAll("<b>" + treeNode.mSearchString + "</b>");
+						lines.add(line);
+						break;
+					}
+
+				}
+			}
+			for (String string : lines) {
+				retString += "\n" + string;
+			}
+		} catch (Exception ex) {
+
+		}
+		return retString;
 	}
 
 	public List<DocumentRelevance> getRelevantDocs(Query parsedQuery,
@@ -158,10 +190,12 @@ public class SearchRunner {
 				return 0;
 			}
 		});
-		/*		double maxRelavance = unSortedList.get(0).mRelavance;
-		for (DocumentRelevance documentRelevance : unSortedList) {
-			documentRelevance.mRelavance = documentRelevance.mRelavance/ maxRelavance;
-		}*/
+		if(ScoringModel.OKAPI == model) {
+			double maxRelavance = unSortedList.get(0).mRelavance;
+			for (DocumentRelevance documentRelevance : unSortedList) {
+				documentRelevance.mRelavance = documentRelevance.mRelavance/ maxRelavance;
+			}
+		}
 		return unSortedList;
 	}
 
@@ -531,12 +565,16 @@ public class SearchRunner {
 
 	private String StreamRelevanceScores(List<DocumentRelevance> relevantDocs) {
 		String out = "";
+		int count = 0;
 		for (DocumentRelevance documentRelevance : relevantDocs) {
+			count++;
 			double relevance = ((double)Math.round(documentRelevance.mRelavance * 100000))/100000 ;
 			out = out+ documentRelevance.mDocID + "#" + relevance + ", ";
+			if(count==10)
+				break;
 		}
 		if(!out.isEmpty()) {
-			out = out.substring(0, out.length() - 1);
+			out = out.substring(0, out.length() - 2);
 		}
 		return "{" + out + "}";
 	}

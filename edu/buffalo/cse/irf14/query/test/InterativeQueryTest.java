@@ -13,7 +13,7 @@ public class InterativeQueryTest {
 	private static SearchRunner mSearchRunner = null;
 	@BeforeClass
 	public final static void initSearchRunner() {
-		mSearchRunner = new SearchRunner("D:\\test", "", ' ', System.out);
+		mSearchRunner = new SearchRunner("D:\\test", "C:\\Classes\\CSE 535 - IR\\Project1\\news_training\\corpus", ' ', System.out);
 	}
 	
 	@Test

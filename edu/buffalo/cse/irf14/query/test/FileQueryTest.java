@@ -16,13 +16,10 @@ public class FileQueryTest {
 	@Test
 	public final void testQuery() {
 		SearchRunner mSearchRunner = new SearchRunner("D:\\test", "", ' ', System.out);
-		
-		
-		
-			File file = new File("d:\\queryFile");
-			if(file.exists()) {
-				mSearchRunner.query(file);
-			}
-		
+		File file = new File("d:\\queryFile");
+		if(file.exists()) {
+			mSearchRunner.query(file);
+		}
 	}
 }
+
